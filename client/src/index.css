@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    color: #102033;
+    background: #f6f8fb;
+    -webkit-tap-highlight-color: transparent;
+    cursor: default;
+    -moz-tab-size: 4;
+    tab-size: 4;
+  }
+
+  html,
+  body {
+    height: 100%;
+    width: 100%;
+    border: none;
+    margin: 0;
+    padding: 0;
+    font-family: "Roboto", "Noto Sans KR", sans-serif;
+    text-rendering: optimizeLegibility;
+    background:
+      radial-gradient(circle at top left, rgba(20, 184, 166, 0.12), transparent 34rem),
+      linear-gradient(180deg, #f8fbfc 0%, #eef4f8 100%);
+  }
+
+  body > div:first-child {
+    height: 100%;
+  }
+
+  * {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  button {
+    border: 0;
+    cursor: pointer;
+    padding: 0;
+    font: inherit;
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin-block-start: unset;
+    margin-block-end: unset;
+  }
+
+  table {
+    border-collapse: collapse;
+    border-spacing: 0;
+  }
+
+  ul {
+    list-style: none;
+    padding-left: unset;
+    padding-inline-start: unset;
+    margin-block-start: unset;
+    margin-block-end: unset;
+  }
+}
+
+@theme {
+  --color-primary-50: #ecfdf8;
+  --color-primary-100: #ccfbec;
+  --color-primary-500: #14b8a6;
+  --color-primary-600: #0d9488;
+  --color-primary-700: #0f766e;
+  --color-ink-900: #102033;
+  --color-ink-600: #526579;
+  --color-surface: #ffffff;
+}
