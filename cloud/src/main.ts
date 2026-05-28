@@ -1,14 +1,6 @@
 import { config } from 'dotenv';
-import { homedir } from 'os';
-import { join } from 'path';
 
-config(
-  process.env.NODE_ENV === 'development'
-    ? {
-        path: join(homedir(), 'web', 'envs', 'portfolio', 'cloud', '.env'),
-      }
-    : undefined,
-);
+config();
 
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
