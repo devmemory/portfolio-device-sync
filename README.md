@@ -4,6 +4,7 @@
 >
 > This repository showcases a high-performance network orchestration layer that solves the inherent constraints of headless edge nodes, focusing on reliable device pairing, robust signaling routing, and low-latency video streaming.
 
+[![Medium](https://img.shields.io/badge/Medium-Deep_Dive_Series-12100E?style=for-the-badge&logo=medium&logoColor=white)](https://medium.com/@devmemorydh)
 ---
 
 ## 🚀 Key Engineering Focus (Interviewer's Guide)
