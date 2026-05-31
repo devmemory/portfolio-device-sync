@@ -2,8 +2,8 @@
   "scripts": {
     "dev": "nodemon src/index.ts",
     "debug": "nodemon src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js"
+    "build": "node build.config.js",
+    "start": "node build/index.js"
   },
   "dependencies": {
     "amqplib": "^2.0.1",
@@ -20,6 +20,7 @@
     "@types/amqplib": "^0.10.8",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "esbuild": "^0.28.0",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3"
