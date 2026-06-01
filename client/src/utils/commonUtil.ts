@@ -16,10 +16,15 @@ export const commonUtil = {
     return res.data.code !== RETURN_CODE.SUCCESS;
   },
   handleError: (res: AxiosError) => {
+    console.log({res})
     const data = res.response?.data as any;
 
-    const msg = data.message ?? res.message;
+    try{
+      const msg = data.message ?? res.message;
+      popupEventBus.emit(msg);
+    } catch (e) {
+      popupEventBus.emit(`${res.message}`);
+    }
 
-    popupEventBus.emit(msg);
   },
 };

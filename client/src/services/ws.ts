@@ -2,6 +2,7 @@ import { io, Socket } from "socket.io-client";
 import { MSG, WebRTC_CMD } from "src/constants";
 import { authUtil } from "src/utils";
 import { popupEventBus } from "src/utils/popupUtil";
+import { refreshToken } from "./ApiErrorHandler";
 
 export class WsService {
   private socket!: Socket;
@@ -27,9 +28,20 @@ export class WsService {
       this.emit(MSG.JOIN, { deviceId });
     });
 
-    this.socket.on("error", (error) => {
-      console.error("[ws] error", error);
-      popupEventBus.emit(error);
+    this.socket.on("error", async (error) => {
+      console.error("[ws] error", { error });
+
+      const { message } = error.message;
+
+      if (message.includes("Expired") || message.includes("Unauthorized")) {
+        const res = await refreshToken();
+        
+        if(res){
+          window.location.reload();
+        }
+      }
+
+      popupEventBus.emit(`${message}`);
     });
   }
 
