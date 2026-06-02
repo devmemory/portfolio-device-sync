@@ -56,7 +56,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
 
     return this.channelWrapper?.publish('', queueName, buffer, {
       persistent: false,
-      expiration: 6000
+      expiration: 60000
     });
   }
 

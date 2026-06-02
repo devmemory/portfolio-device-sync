@@ -82,7 +82,7 @@ describe('MqttService', () => {
       '',
       'q_device_machine-1',
       Buffer.from(JSON.stringify({ type: 'STATUS' })),
-      { persistent: false, expiration: 6000 },
+      { persistent: false, expiration: 60000 },
     );
   });
 
