@@ -34,7 +34,7 @@ const setupGlobalOption = (app: INestApplication) => {
     credentials: true,
   });
 
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api', { exclude: ['api-docs', 'metrics'] });
 
   // dto class validation
   app.useGlobalPipes(

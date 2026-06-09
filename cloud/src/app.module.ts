@@ -2,11 +2,13 @@ import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { makeCounterProvider, makeHistogramProvider, PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import {
   HttpExceptionFilter,
   LoggingInterceptor,
+  MetricsInterceptor,
   OriginGuard,
   ResponseInterceptor,
   TypeOrmExceptionFilter,
@@ -42,6 +44,15 @@ import { UserModule } from './modules/user/user.module';
         },
       ],
     }),
+    PrometheusModule.register({
+      defaultMetrics: {
+        enabled: true,
+      },
+      defaultLabels: {
+        app: 'app',
+      },
+      path: '/metrics',
+    }),
     RedisModule,
     MqttModule,
     DeviceModule,
@@ -68,6 +79,21 @@ import { UserModule } from './modules/user/user.module';
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
     },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: MetricsInterceptor,
+    },
+    makeCounterProvider({
+      name: 'http_request_duration_seconds_count',
+      help: 'Total number of HTTP requests throughput',
+      labelNames: ['method', 'route', 'status_code'],
+    }),
+    makeHistogramProvider({
+      name: 'http_request_duration_seconds',
+      help: 'Duration of HTTP requests in seconds',
+      labelNames: ['method', 'route', 'status_code'],
+      buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10],
+    }),
   ],
 })
 export class AppModule {}

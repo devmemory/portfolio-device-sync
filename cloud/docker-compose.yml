@@ -1,5 +1,6 @@
 services:
   app:
+    container_name: app
     build:
       context: .
       dockerfile: Dockerfile
@@ -100,9 +101,26 @@ services:
       - COTURN_REALM=${TURN_REALM}
       - COTURN_USER=${TURN_USER}
 
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    network_mode: "host"
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-admin-api'
+    restart: always
+
 volumes:
   postgres_data:
   rabbitmq_data:
+  prometheus_data:
 
 networks:
   app-network:
