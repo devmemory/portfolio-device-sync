@@ -155,15 +155,16 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
   }
 
   async deleteUser(username: string) {
-    const baseUrl = 'http://localhost:15672/api';
+    const baseUrl = `http://${process.env.RABBITMQ_HOST}:15672/api`;
 
     try {
+      console.log('[mq] Deleting user...');
       await firstValueFrom(
         this.httpService.delete(`${baseUrl}/users/${username}`, {
           auth: this.admin,
         }),
       );
-      console.log(`User ${username} deleted successfully.`);
+      console.log(`[mq] User ${username} deleted successfully.`);
     } catch (e) {
       console.log({ e });
     }

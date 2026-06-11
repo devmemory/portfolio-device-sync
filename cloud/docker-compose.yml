@@ -69,6 +69,7 @@ services:
       - '5672:5672' # AMQP
       - '15672:15672' # page
     restart: always
+    hostname: rabbitmq-server
     env_file:
       - .env
     environment:
