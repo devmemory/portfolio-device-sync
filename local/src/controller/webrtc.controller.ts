@@ -31,9 +31,7 @@ class WebRTCController {
     await this.dispose();
 
     this.peerConnection = new RTCPeerConnection({
-      iceServers: [
-        { urls: "stun:stun.l.google.com:19302" },
-        this.turnInfo],
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }, this.turnInfo],
       icePortRange: [49152, 65535],
     });
 
@@ -90,6 +88,7 @@ class WebRTCController {
       switch (this.peerConnection?.connectionState) {
         case "connected":
           this.isConnected = true;
+          this.iceCandidateQueue = [];
           break;
         case "closed":
         case "disconnected":

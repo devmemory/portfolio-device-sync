@@ -10,6 +10,7 @@ class MessageController {
   private connection?: ChannelModel;
   private offerTimeoutTimer: NodeJS.Timeout | null = null;
   private machineId?: string;
+  private candidateDebounce: NodeJS.Timeout | null = null;
 
   async subscribe(model: MqConenctionModel) {
     const { machineId, username, password } = model;
@@ -18,7 +19,7 @@ class MessageController {
     const encodedUser = encodeURIComponent(username);
     const encodedPass = encodeURIComponent(password);
 
-    const amqp = process.env.AMQP || "amqp";
+    const amqp = process.env.RABBITMQ_PROTOCOL || "amqp";
 
     const amqpUrl = `${amqp}://${encodedUser}:${encodedPass}@${process.env.AMQP_URL}`;
 
@@ -30,7 +31,7 @@ class MessageController {
 
     this.channel = await this.connection.createChannel();
 
-    await this.channel.prefetch(10);
+    await this.channel.prefetch(1);
 
     await this.channel.consume(queueName, (msg) => {
       if (msg === null) {
@@ -111,28 +112,22 @@ class MessageController {
           }
           break;
         case MQ_MSG.CANDIDATE:
-          const receivdCandidate = await webRTCController.receiveIceCandidate(
-            payload.data,
-          );
+          this.channel.ack(msg);
 
-          webRTCController.iceCandidateQueue.forEach((model) => {
-            if (!webRTCController.isConnected) {
-              this._publish({
-                type: MQ_MSG.CANDIDATE,
-                data: model,
-              });
-            }
-          });
+          await webRTCController.receiveIceCandidate(payload.data);
 
-          if (receivdCandidate) {
-            this.channel.ack(msg);
-          } else {
-            deviceController.sendErr(
-              ERR_CODE.AMQT_NULL_CANDIDATE,
-              `received data: ${msg.content.toString()}`,
-            );
-            this.channel.reject(msg, false);
-          }
+          this._clearCandidateDebounce();
+
+          this.candidateDebounce = setTimeout(() => {
+            webRTCController.iceCandidateQueue.forEach((model) => {
+              if (!webRTCController.isConnected) {
+                this._publish({
+                  type: MQ_MSG.CANDIDATE,
+                  data: model,
+                });
+              }
+            });
+          }, 100);
           break;
         default:
           deviceController.sendErr(
@@ -162,7 +157,7 @@ class MessageController {
         ? null
         : { machineId: this.machineId, ...payload.data };
 
-    console.log('[mq]', payload.type);
+    console.log("[mq]", payload.type);
 
     this.channel.publish(
       "",
@@ -183,8 +178,16 @@ class MessageController {
     }
   }
 
+  private _clearCandidateDebounce() {
+    if (this.candidateDebounce) {
+      clearTimeout(this.candidateDebounce);
+      this.candidateDebounce = null;
+    }
+  }
+
   async dispose() {
     this._clearOfferTimeout();
+    this._clearCandidateDebounce();
 
     if (this.channel) {
       try {
