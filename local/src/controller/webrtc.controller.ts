@@ -3,7 +3,7 @@ import * as dgram from "dgram";
 import { MediaStreamTrack, RTCPeerConnection } from "werift";
 import { ERR_CODE } from "../constants";
 import { IceCandidateModel } from "../models";
-import { getPlatformSpecs } from "../util/ffmpeg.util";
+import { getPlatformSpecs, getThreads } from "../util/ffmpeg.util";
 import deviceController from "./device.controller";
 
 class WebRTCController {
@@ -168,7 +168,10 @@ class WebRTCController {
     this.udpServer.bind(this.UDP_PORT, "127.0.0.1", () => {
       console.log(`[FFmpeg] UDP server started on port ${this.UDP_PORT}`);
 
-      const { formatDriver, formatParam, device } = getPlatformSpecs();
+      const { formatDriver, formatParam, pixelFormat, device } =
+        getPlatformSpecs();
+
+      const threads = getThreads();
 
       this.ffmpegProcess = spawn("ffmpeg", [
         "-loglevel",
@@ -177,7 +180,8 @@ class WebRTCController {
         "-f",
         formatDriver,
         formatParam,
-        "mjpeg",
+        pixelFormat,
+
         "-video_size",
         "1280x720",
         "-framerate",
@@ -192,7 +196,9 @@ class WebRTCController {
         "-deadline",
         "realtime",
         "-cpu-used",
-        "5",
+        threads,
+        "-threads",
+        threads,
         "-g",
         "30",
         "-keyint_min",
