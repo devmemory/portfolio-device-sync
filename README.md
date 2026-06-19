@@ -8,8 +8,8 @@
 >
 > This repository showcases a high-performance network orchestration layer that solves the inherent constraints of headless edge nodes, focusing on reliable device pairing, robust signaling routing, and low-latency video streaming.
 
-Blog post: https://medium.com/@devmemorydh
-Live demo: https://www.devmemory.xyz/
+- Blog post: https://medium.com/@devmemorydh   
+- Live demo: https://www.devmemory.xyz/
 ---
 
 ## 🚀 Key Engineering Focus (Interviewer's Guide)
