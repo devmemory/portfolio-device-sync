@@ -4,7 +4,8 @@
 >
 > This repository showcases a high-performance network orchestration layer that solves the inherent constraints of headless edge nodes, focusing on reliable device pairing, robust signaling routing, and low-latency video streaming.
 
-[![Medium](https://img.shields.io/badge/Medium-Deep_Dive_Series-12100E?style=for-the-badge&logo=medium&logoColor=white)](https://medium.com/@devmemorydh)
+Blog post: https://medium.com/@devmemorydh
+Live demo: https://www.devmemory.xyz/
 ---
 
 ## 🚀 Key Engineering Focus (Interviewer's Guide)
@@ -15,10 +16,11 @@ This project is a deep dive into edge computing constraints, protocol selection 
 * **The BLE Bottleneck:** While Bluetooth Low Energy (BLE) is ideal for headless device provisioning, strict web browser security and fragmented Web Bluetooth API support pose significant adoption barriers. This architecture mitigates this by utilizing a native **Mobile App provisioning** wrapper.
 * **mDNS Hostname Collision:** Deploying multiple identical edge devices on the same local network causes mDNS hostname conflicts. To ensure unique local discovery, the system dynamically registers **distinct hostnames suffixed with device-specific hardware serial numbers**.
 
-### 2. Protocol Architecture: Why AMQP + MQTT?
-The signaling control plane splits responsibilities between the Client and the Edge Node by bridging **MQTT** and **AMQP** via RabbitMQ, leveraging the unique strengths of both protocols:
-* **MQTT (Client/Pub-Sub):** Operates without persistent message queues, providing an extremely lightweight, zero-overhead Pub/Sub topic architecture for fast client-side signaling events.
-* **AMQP (Edge/Queue-Based):** Acts as a resilient "mailbox." Unlike MQTT, AMQP manages actual persistent message queues. Even if the edge node temporarily drops its connection, the signaling broker holds the packets until the subscriber explicitly retrieves and acknowledges (`ACK`) them. Additionally, the edge node can subscribe directly to its dedicated queue without needing to guess or know complex topic strings beforehand.
+### 2. Protocol Architecture: Why AMQP Over MQTT for Edge Nodes?
+Instead of MQTT, which is commonly used in edge environments, this control plane explicitly adopts AMQP (via RabbitMQ) to overcome network instability and guarantee strict signaling QoS.   
+* **MQTT Bottleneck (Data Loss on Disconnection):** While lightweight, MQTT risks dropping critical packets during frequent connection loss and recovery cycles. Signaling events sent while the edge node is offline can easily evaporate, breaking system synchronization.
+
+* **AMQP Advantage (Queue-Based QoS):** AMQP provides robust persistent message queues. Even if a node drops its connection, the broker holds the packets safely until the node reconnects and explicitly sends an ACK. This also simplifies state management, as nodes only need to subscribe to their dedicated queue without tracking complex topic strings.
 
 ### 3. Secure Signaling & SDP Strictness
 * **Mitigating Account Leaks:** Provisioning temporary MQTT accounts per pairing session poses a severe security risk and resource leaks. Instead, all signaling traffic is routed through a secure, permanent hub: **Client ⇄ WebSockets (Socket.IO) ⇄ Cloud Gateway (NestJS) ⇄ AMQP/MQTT ⇄ Local Agent**, isolating edge credentials.
@@ -31,6 +33,12 @@ The signaling control plane splits responsibilities between the Client and the E
 ### 5. WebRTC NAT Traversal & Connectivity
 * Due to complex local router configurations, Symmetric NATs, and strict firewalls, standard Peer-to-Peer STUN handshakes frequently fail in real-world deployment networks.
 * To guarantee 100% connectivity, the infrastructure integrates a dedicated, optimized **CoTURN (TURN/STUN) server**, fallback-routing encrypted media streams over a relay whenever direct hole-punching fails.
+* **Mitigating Credential Exposure:** Exposing static TURN server credentials directly to the client dashboard poses a severe security risk, leading to resource unauthorized hijacking. To mitigate this, the Cloud Gateway dynamically generates time-to-live (TTL)-backed ephemeral credentials per session, ensuring secure and temporary access control.
+
+### 6. Maximum Transmission Unit (MTU) Optimization
+* Default MTU: The standard default MTU is 1500 bytes. However, this can cause packet fragmentation and transmission issues on mobile networks or low-bandwidth connections.
+* Mobile & Low-Speed Optimization: To prevent video blackouts and minimize packet loss on constrained networks, the MTU is optimized to 1200 bytes.
+* Mobile Network Overhead: For mobile-specific environments, an MTU ceiling of 1320 bytes should be assumed to accommodate cellular protocol overhead.
 
 ---
 
