@@ -1,3 +1,7 @@
+<p>
+  <strong>English</strong> | <a href="./README_KR.md">한국어</a>
+</p>
+
 # 🌐 portfolio-device-sync
 
 > **A Secure, Cloud-Relayed Remote Camera Reverse-Tunneling Architecture designed to orchestrate Edge Devices using Hybrid Protocols (WebSockets ⇄ AMQP/MQTT) and WebRTC.**

@@ -1,3 +1,7 @@
+<p>
+  <a href="./README.md">English</a> | <strong>한국어</strong>
+</p>
+
 # 🌐 portfolio-device-sync
 
 > **하이브리드 프로토콜(WebSockets ⇄ AMQP/MQTT)과 WebRTC를 활용하여 Edge Devices를 오케스트레이션하도록 설계된, 클라우드 중계 기반의 안전한 Reverse-Tunneling 아키텍처입니다.**
