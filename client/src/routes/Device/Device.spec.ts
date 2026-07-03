@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import DeviceList from ".";
 
 const controller = vi.fn();
+const connectionController = vi.fn();
 
 vi.mock("src/utils/routeUtil", () => ({
   routeName: { deviceError: "/device/error" },
@@ -12,10 +13,15 @@ vi.mock("src/utils/routeUtil", () => ({
 vi.mock("react-router", () => ({
   Link: ({ children, to }: { children: React.ReactNode; to: string }) =>
     React.createElement("a", { href: to }, children),
+  useNavigate: () => vi.fn(),
 }));
 
 vi.mock("./useDeviceController", () => ({
   default: () => controller(),
+}));
+
+vi.mock("./useConnectionController", () => ({
+  default: () => connectionController(),
 }));
 
 vi.mock("./modal/AddDeviceModal", () => ({
@@ -28,6 +34,11 @@ vi.mock("./modal/DeleteDeviceModal", () => ({
 
 describe("DeviceList page", () => {
   beforeEach(() => {
+    connectionController.mockReturnValue({
+      isPendingConnection: false,
+      onConnectDevice: vi.fn(),
+    });
+
     controller.mockReturnValue({
       data: {
         list: [{ description: "Temperature sensor", id: 1, name: "Sensor" }],
@@ -40,7 +51,6 @@ describe("DeviceList page", () => {
       onChangePage: vi.fn(),
       onClosePairModal: vi.fn(),
       onConfirmRemove: vi.fn(),
-      onConnectDevice: vi.fn(),
       onConnectionCheck: vi.fn(),
       onOpenRemove: vi.fn(),
       onPairSuccess: vi.fn(),

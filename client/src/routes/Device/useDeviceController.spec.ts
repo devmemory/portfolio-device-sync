@@ -97,15 +97,6 @@ describe("useDeviceController", () => {
     expect(mocks.emit).toHaveBeenCalledWith("Pair fail");
   });
 
-  it("navigates to the connection page for a selected device", async () => {
-    const { default: useDeviceController } = await import("./useDeviceController");
-    const controller = useDeviceController();
-
-    controller.onConnectDevice(7);
-
-    expect(mocks.navigate).toHaveBeenCalledWith("/connection/7");
-  });
-
   it("refetches and reports successful removal", async () => {
     const { default: useDeviceController } = await import("./useDeviceController");
     const controller = useDeviceController();

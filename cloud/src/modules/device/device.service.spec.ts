@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
-import { MSG } from '@/common';
+import { eventEmitter, MSG } from '@/common';
 import { MqttService } from '@/infrastructure/mqtt/mqtt.service';
 import { RedisService } from '@/infrastructure/redis/redis.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
@@ -71,18 +71,29 @@ describe('DeviceService', () => {
   });
 
   describe('sendMsg', () => {
-    it('publishes to the cached owned-device queue', async () => {
+    it('publishes to the cached owned-device queue and resolves with the device response', async () => {
       redisService.get.mockResolvedValue('machine-1');
       mqttService.publishToDevice.mockResolvedValue(true);
+      let responseListener: ((value: boolean) => void) | undefined;
+      jest.spyOn(eventEmitter, 'once').mockImplementation((event, listener) => {
+        expect(event).toBe('machine-1');
+        responseListener = listener as (value: boolean) => void;
+        return eventEmitter;
+      });
 
-      await expect(
-        service.sendMsg(7, { deviceId: 10, message: { type: MSG.STATUS } }),
-      ).resolves.toBe(true);
+      const result = service.sendMsg(7, {
+        deviceId: 10,
+        message: { type: MSG.STATUS },
+      });
+
+      await new Promise((resolve) => setImmediate(resolve));
+      responseListener?.(true);
 
       expect(mqttService.publishToDevice).toHaveBeenCalledWith(
         'q_device_machine-1',
         { type: MSG.STATUS },
       );
+      await expect(result).resolves.toBe(true);
       expect(deviceRepo.findOne).not.toHaveBeenCalled();
     });
 

@@ -68,7 +68,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
 
     await channel.prefetch(1);
 
-    const consumeResult = await channel.consume(
+    await channel.consume(
       this.upstreamQueue,
       async (message) => {
         if (!message) {
@@ -96,12 +96,6 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
         }
       },
     );
-
-    return async () => {
-      console.log('[MQ] channel clean up');
-      await channel.cancel(consumeResult.consumerTag);
-      await channel.close();
-    };
   }
 
   async onModuleDestroy() {

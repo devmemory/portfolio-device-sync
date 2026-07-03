@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/require-await */
+import { eventEmitter, MSG, REALTIME_EVENT } from '@/common';
 import { HttpService } from '@nestjs/axios';
 import amqp from 'amqp-connection-manager';
 import { of, throwError } from 'rxjs';
@@ -87,40 +88,57 @@ describe('MqttService', () => {
   });
 
   it('consumes valid JSON, acknowledges the message, and calls the handler', async () => {
-    const handler = jest.fn();
+    const emitSpy = jest.spyOn(eventEmitter, 'emit');
     await service.onModuleInit();
-    const consumer = await service.consumeJson(handler);
-    const onMessage = rawChannel.consume.mock.calls[0][1];
+    await service.consumeJson();
+    const onMessage = rawChannel.consume.mock.calls.at(-1)[1];
     const message = { content: Buffer.from(JSON.stringify({ ok: true })) };
 
     await onMessage(message);
-    await consumer.close();
 
     expect(rawChannel.prefetch).toHaveBeenCalledWith(1);
     expect(rawChannel.ack).toHaveBeenCalledWith(message);
-    expect(handler).toHaveBeenCalledWith({ ok: true });
-    expect(rawChannel.cancel).toHaveBeenCalledWith('consumer-1');
-    expect(rawChannel.close).toHaveBeenCalled();
+    expect(emitSpy).toHaveBeenCalledWith(REALTIME_EVENT, { ok: true });
   });
 
   it('nacks malformed JSON without calling the handler', async () => {
-    const handler = jest.fn();
+    const emitSpy = jest.spyOn(eventEmitter, 'emit');
     await service.onModuleInit();
-    await service.consumeJson(handler);
-    const onMessage = rawChannel.consume.mock.calls[0][1];
+    await service.consumeJson();
+    const onMessage = rawChannel.consume.mock.calls.at(-1)[1];
     const message = { content: Buffer.from('{bad json') };
 
     await onMessage(message);
 
     expect(rawChannel.nack).toHaveBeenCalledWith(message, false, false);
-    expect(handler).not.toHaveBeenCalled();
+    expect(emitSpy).not.toHaveBeenCalled();
+  });
+
+  it('emits CHECK results on the machine-specific event', async () => {
+    const emitSpy = jest.spyOn(eventEmitter, 'emit');
+    await service.onModuleInit();
+    await service.consumeJson();
+    const onMessage = rawChannel.consume.mock.calls.at(-1)[1];
+    const message = {
+      content: Buffer.from(
+        JSON.stringify({
+          type: MSG.CHECK,
+          data: { machineId: 'machine-1', result: true },
+        }),
+      ),
+    };
+
+    await onMessage(message);
+
+    expect(rawChannel.ack).toHaveBeenCalledWith(message);
+    expect(emitSpy).toHaveBeenCalledWith('machine-1', true);
   });
 
   it('throws when consuming without an active raw connection', async () => {
     await service.onModuleInit();
     connection._currentConnection = undefined;
 
-    await expect(service.consumeJson(jest.fn())).rejects.toThrow(
+    await expect(service.consumeJson()).rejects.toThrow(
       'No active MQ connection',
     );
   });
