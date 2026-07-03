@@ -1,6 +1,7 @@
 import { Channel, ChannelModel, connect, Message } from "amqplib";
-import { ERR_CODE, MQ_MSG, PAYLOAD_TYPE } from "../constants";
+import { ERR_CODE, MQ_MSG, PAYLOAD_TYPE, SERVICE_NAME } from "../constants";
 import { MqConenctionModel } from "../models";
+import { serviceUtil } from "../util";
 import deviceController from "./device.controller";
 import LifecycleController from "./lifecycle.controller";
 import webRTCController from "./webrtc.controller";
@@ -65,6 +66,24 @@ class MessageController {
 
           lifecycle.startMdns();
           await lifecycle.stopMqtt();
+
+          break;
+        case MQ_MSG.CHECK:
+          if (payload.data === SERVICE_NAME.AI) {
+            this.channel.ack(msg);
+
+            const result = await serviceUtil.hasAIModel();
+
+            this._publish({ type: MQ_MSG.CHECK, data: { result } });
+          } else if (payload.data === SERVICE_NAME.MEDIA) {
+            this.channel.ack(msg);
+
+            const result = await serviceUtil.hasFfmpeg();
+
+            this._publish({ type: MQ_MSG.CHECK, data: { result } });
+          } else {
+            this.channel.reject(msg, false);
+          }
 
           break;
         case MQ_MSG.SIGNAL:

@@ -1,10 +1,11 @@
-import { getPagination, MSG, PaginationDto } from '@/common';
+import { eventEmitter, getPagination, MSG, PaginationDto } from '@/common';
 import { MqttService } from '@/infrastructure/mqtt/mqtt.service';
 import { RedisService } from '@/infrastructure/redis/redis.service';
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  RequestTimeoutException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomBytes } from 'crypto';
@@ -41,7 +42,26 @@ export class DeviceService {
 
     const queueName = deviceNameUtil.getQueueName(machineId);
 
-    return await this.mqttService.publishToDevice(queueName, message);
+    await this.mqttService.publishToDevice(queueName, message);
+
+    let timeoutId: NodeJS.Timeout;
+
+    return new Promise((resolve, reject) => {
+      const handleEvent = (data: any) => {
+        clearTimeout(timeoutId);
+
+        console.log({data})
+
+        resolve(data);
+      };
+
+      eventEmitter.once(machineId, handleEvent);
+
+      timeoutId = setTimeout(() => {
+        eventEmitter.off(machineId, handleEvent);
+        reject(new RequestTimeoutException("Check your local device."));
+      }, 5000);
+    });
   }
 
   async getOwnedDevice(userId: number, deviceId: number) {

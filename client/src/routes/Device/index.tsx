@@ -4,11 +4,12 @@ import { Button } from "src/components/Button";
 import { Show } from "src/components/Condition";
 import { Pagination } from "src/components/Pagination";
 import { Table } from "src/components/Table";
-import { DEVICE_TABLE_HEAD } from "src/constants";
+import { DEVICE_TABLE_HEAD, SERVICE_NAME } from "src/constants";
 import { routeName } from "src/utils/routeUtil";
 import ConnectionCard from "./ConnectionCard";
 import AddDeviceModal from "./modal/AddDeviceModal";
 import DeleteDeviceModal from "./modal/DeleteDeviceModal";
+import useConnectionController from "./useConnectionController";
 import useDeviceController from "./useDeviceController";
 
 const DeviceList = () => {
@@ -22,12 +23,12 @@ const DeviceList = () => {
     onOpenRemove,
     onCancelRemove,
     onConfirmRemove,
-    onConnectDevice,
     onPairSuccess,
     selectedDeviceId,
     onConnectionCheck,
     isCheckPending,
   } = useDeviceController();
+  const { onConnectDevice, isPendingConnection } = useConnectionController();
 
   return (
     <div className="grid gap-6">
@@ -64,8 +65,11 @@ const DeviceList = () => {
                   <Table.Td label="action">
                     <div className="flex flex-wrap gap-2">
                       <Button
-                        onClick={() => onConnectDevice(device.id)}
+                        onClick={() =>
+                          onConnectDevice(device.id, SERVICE_NAME.MEDIA)
+                        }
                         variant="secondary"
+                        disabled={isPendingConnection}
                       >
                         Connect
                       </Button>

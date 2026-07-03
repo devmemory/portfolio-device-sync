@@ -3,7 +3,7 @@ import * as dgram from "dgram";
 import { MediaStreamTrack, RTCPeerConnection } from "werift";
 import { ERR_CODE } from "../constants";
 import { IceCandidateModel } from "../models";
-import { getPlatformSpecs, getThreads } from "../util/ffmpeg.util";
+import { getPlatformSpecs, getThreads } from "../util";
 import deviceController from "./device.controller";
 
 class WebRTCController {

@@ -7,4 +7,12 @@ export const MSG = {
   ANSWER: 'ANSWER', // WebRTC answer(local)
   CANDIDATE: 'CANDIDATE', // WebRTC candidate
   CLOSE: 'CLOSE', // close mqtt
+  CHECK: 'CHECK' // check service
 } as const;
+
+export const SERVICE_NAME = {
+  AI: "AI",
+  MEDIA: "MEDIA",
+} as const;
+
+export const REALTIME_EVENT = "REALTIME_EVENT"

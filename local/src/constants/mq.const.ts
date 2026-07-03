@@ -5,6 +5,7 @@ export const MQ_MSG = {
   OFFER: "OFFER",
   ANSWER: "ANSWER",
   CANDIDATE: "CANDIDATE",
+  CHECK: "CHECK",
   CLOSE: "CLOSE",
 } as const;
 
@@ -14,3 +15,8 @@ export type PAYLOAD_TYPE = {
   type: MQ_MSG_TYPE;
   data?: any;
 };
+
+export const SERVICE_NAME = {
+  AI: "AI",
+  MEDIA: "MEDIA",
+} as const;

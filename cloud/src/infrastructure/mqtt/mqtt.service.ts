@@ -1,3 +1,4 @@
+import { eventEmitter, MSG, REALTIME_EVENT } from '@/common';
 import { HttpService } from '@nestjs/axios';
 import {
   Injectable,
@@ -41,11 +42,13 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
     await this.channelWrapper.addSetup(async (channel: ConfirmChannel) => {
       await channel.assertQueue(this.upstreamQueue, {
         durable: true,
-        autoDelete: false
+        autoDelete: false,
       });
 
       this.logger.log('[RabbitMQ] Channel active, running assertions...');
     });
+
+    this.consumeJson();
   }
 
   /**
@@ -56,11 +59,11 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
 
     return this.channelWrapper?.publish('', queueName, buffer, {
       persistent: false,
-      expiration: 60000
+      expiration: 60000,
     });
   }
 
-  async consumeJson(handler: any) {
+  async consumeJson() {
     const channel = await this.createRawChannel();
 
     await channel.prefetch(1);
@@ -77,7 +80,13 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
           console.log(`[mq] Received message`, payload);
 
           channel.ack(message);
-          await handler(payload);
+          if (payload.type === MSG.CHECK) {
+            const { machineId, result } = payload.data;
+
+            eventEmitter.emit(machineId, result);
+          } else {
+            eventEmitter.emit(REALTIME_EVENT, payload);
+          }
         } catch (error) {
           this.logger.error(
             `[mq] Failed to consume message from device`,
@@ -88,11 +97,10 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
       },
     );
 
-    return {
-      close: async () => {
-        await channel.cancel(consumeResult.consumerTag);
-        await channel.close();
-      },
+    return async () => {
+      console.log('[MQ] channel clean up');
+      await channel.cancel(consumeResult.consumerTag);
+      await channel.close();
     };
   }
 

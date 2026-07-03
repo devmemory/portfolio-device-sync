@@ -1,15 +1,11 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
 import { useDisclosure, usePagination } from "src/hooks";
 import { apiManager } from "src/services/ApiManager";
 import { commonUtil } from "src/utils";
 import { popupEventBus } from "src/utils/popupUtil";
-import { routeName } from "src/utils/routeUtil";
 
 const useDeviceController = () => {
-  const navigate = useNavigate();
-
   const { pageModel, onChangePage, onSetTotal } = usePagination();
 
   const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
@@ -88,10 +84,6 @@ const useDeviceController = () => {
     }
   };
 
-  const onConnectDevice = (deviceId: number) => {
-    navigate(routeName.connection + `/${deviceId}`);
-  };
-
   return {
     pageModel,
     onChangePage,
@@ -104,7 +96,6 @@ const useDeviceController = () => {
     onOpenRemove,
     onCancelRemove,
     onConfirmRemove,
-    onConnectDevice,
     onConnectionCheck,
     isCheckPending,
   };

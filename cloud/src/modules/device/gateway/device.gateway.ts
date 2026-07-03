@@ -1,13 +1,20 @@
 import {
   CurrentUser,
+  eventEmitter,
   getTurnInfo,
   MSG,
+  REALTIME_EVENT,
   WsExceptionFilter,
   WsJwtGuard,
 } from '@/common';
 import { MqttService } from '@/infrastructure/mqtt/mqtt.service';
 import { RedisService } from '@/infrastructure/redis/redis.service';
-import { OnModuleInit, UseFilters, UseGuards } from '@nestjs/common';
+import {
+  OnModuleDestroy,
+  OnModuleInit,
+  UseFilters,
+  UseGuards,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   ConnectedSocket,
@@ -32,7 +39,9 @@ import { Device } from '../entities/device.entity';
 })
 @UseGuards(WsJwtGuard)
 @UseFilters(WsExceptionFilter)
-export class DeviceGateway implements OnModuleInit, OnGatewayDisconnect {
+export class DeviceGateway
+  implements OnModuleInit, OnModuleDestroy, OnGatewayDisconnect
+{
   @WebSocketServer()
   server!: Server;
 
@@ -44,9 +53,11 @@ export class DeviceGateway implements OnModuleInit, OnGatewayDisconnect {
   ) {}
 
   onModuleInit() {
-    this.mqttService.consumeJson((payload: any) => {
-      this.subscribe(payload);
-    });
+    eventEmitter.on(REALTIME_EVENT, this.subscribe);
+  }
+
+  onModuleDestroy() {
+    eventEmitter.off(REALTIME_EVENT, this.subscribe);
   }
 
   handleDisconnect(@ConnectedSocket() client: Socket) {
