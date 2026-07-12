@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useDisclosure, usePagination } from "src/hooks";
-import { apiManager } from "src/services/ApiManager";
+import { apiManager } from "src/services/api/ApiManager";
 import { commonUtil } from "src/utils";
 import { popupEventBus } from "src/utils/popupUtil";
 

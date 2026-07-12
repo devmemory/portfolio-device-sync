@@ -1,4 +1,6 @@
 import { config } from 'dotenv';
+import { homedir } from 'os';
+import { join } from 'path';
 
 config();
 
@@ -34,7 +36,7 @@ const setupGlobalOption = (app: INestApplication) => {
     credentials: true,
   });
 
-  app.setGlobalPrefix('api', { exclude: ['api-docs', 'metrics'] });
+  app.setGlobalPrefix('api');
 
   // dto class validation
   app.useGlobalPipes(

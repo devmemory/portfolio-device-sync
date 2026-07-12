@@ -6,7 +6,7 @@ import { Pagination } from "src/components/Pagination";
 import { Table } from "src/components/Table";
 import { ERR_MSG } from "src/constants/deviceErrConst";
 import { usePagination } from "src/hooks";
-import { apiManager } from "src/services/ApiManager";
+import { apiManager } from "src/services/api/ApiManager";
 import { routeName } from "src/utils/routeUtil";
 
 const ERROR_TABLE_HEAD = ["code", "type", "message", "created"] as const;

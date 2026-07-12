@@ -7,6 +7,7 @@ export const MQ_MSG = {
   CANDIDATE: "CANDIDATE",
   CHECK: "CHECK",
   CLOSE: "CLOSE",
+  CONVERSATION: "CONVERSATION"
 } as const;
 
 export type MQ_MSG_TYPE = keyof typeof MQ_MSG;

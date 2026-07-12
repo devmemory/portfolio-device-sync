@@ -1,9 +1,9 @@
 import {
   CurrentUser,
   eventEmitter,
-  getTurnInfo,
   MSG,
   SERVICE_NAME,
+  SPEAKER_TYPE,
   WsExceptionFilter,
   WsJwtGuard,
 } from '@/common';
@@ -27,11 +27,12 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Repository } from 'typeorm';
-import { deviceNameUtil } from '../device.util';
-import { Device } from '../entities/device.entity';
+import { deviceNameUtil } from '../device/device.util';
+import { Device } from '../device/entities/device.entity';
+import { ConversationService } from './conversation.service';
 
 @WebSocketGateway({
-  namespace: 'device',
+  namespace: 'conversation',
   cors: {
     origin: ['https://www.devmemory.xyz', 'http://localhost:3000'],
     credentials: true,
@@ -39,7 +40,7 @@ import { Device } from '../entities/device.entity';
 })
 @UseGuards(WsJwtGuard)
 @UseFilters(WsExceptionFilter)
-export class DeviceGateway
+export class ConversationGateway
   implements OnModuleInit, OnModuleDestroy, OnGatewayDisconnect
 {
   @WebSocketServer()
@@ -48,16 +49,17 @@ export class DeviceGateway
   constructor(
     @InjectRepository(Device)
     private readonly deviceRepo: Repository<Device>,
+    private readonly conversationService: ConversationService,
     private readonly mqttService: MqttService,
     private readonly redisService: RedisService,
   ) {}
 
   onModuleInit() {
-    eventEmitter.on(SERVICE_NAME.MEDIA, this.subscribe);
+    eventEmitter.on(SERVICE_NAME.AI, this.subscribe);
   }
 
   onModuleDestroy() {
-    eventEmitter.off(SERVICE_NAME.MEDIA, this.subscribe);
+    eventEmitter.off(SERVICE_NAME.AI, this.subscribe);
   }
 
   handleDisconnect(@ConnectedSocket() client: Socket) {
@@ -75,99 +77,68 @@ export class DeviceGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() data: any,
   ) {
-    const { deviceId } = data;
+    const { deviceId, conversationId } = data;
 
     const queueName = await this.getQueueName(deviceId, userId);
 
-    client.join(`room-${deviceId}`);
+    client.join(`room-${conversationId}`);
 
     (client as any).queueName = queueName;
 
-    console.log('[ws] join', { deviceId, queueName });
-
-    const turnInfo = getTurnInfo();
+    console.log('[ws] join', { conversationId, queueName });
 
     this.mqttService.publishToDevice(queueName, {
       type: MSG.SIGNAL,
-      data: turnInfo,
     });
   }
 
   private subscribe = async (payload: any) => {
-    const deviceId = await this.getDeviceId(payload.data.machineId);
+    const { machineId, conversationId, result } = payload.data;
+
+    const { deviceId, userId } = await this.getIds(machineId);
 
     if (!deviceId) {
       throw new WsException('Device id not found');
     }
 
-    switch (payload.type) {
-      case MSG.ANSWER:
-        const { sdp, type } = payload.data;
+    if (payload.type === MSG.CONVERSATION) {
+      this.server
+        .to(`room-${conversationId}`)
+        .emit(MSG.CONVERSATION, { result });
 
-        this.server.to(`room-${deviceId}`).emit(MSG.ANSWER, { sdp, type });
-        break;
-      case MSG.CANDIDATE:
-        const { candidate, sdpMid, sdpMLineIndex } = payload.data;
-
-        this.server
-          .to(`room-${deviceId}`)
-          .emit(MSG.CANDIDATE, { candidate, sdpMid, sdpMLineIndex });
-        break;
-      case MSG.SIGNAL:
-        const config = getTurnInfo();
-
-        this.server
-          .to(`room-${deviceId}`)
-          .emit(MSG.SIGNAL, JSON.stringify(config));
-
-        console.log(`[ws] signal`, { deviceId, signal: payload.data.signal });
-        break;
-      default:
-        new WsException('Invalid message type');
-        break;
+      await this.conversationService.addContent(userId, {
+        conversationId,
+        content: result,
+        speakerType: SPEAKER_TYPE.AI,
+      });
+    } else {
+      throw new WsException('Invalid type');
     }
   };
 
-  @SubscribeMessage(MSG.OFFER)
+  @SubscribeMessage(MSG.CONVERSATION)
   async handleOffer(
     @CurrentUser('id') userId: number,
     @MessageBody() data: any,
   ) {
-    const { sdp, type, deviceId } = data;
+    const { prompt, deviceId, conversationId } = data;
 
     const queueName = await this.getQueueName(deviceId, userId);
 
-    this.mqttService.publishToDevice(queueName, {
-      type: MSG.OFFER,
-      data: { sdp, type },
+    const result = await this.mqttService.publishToDevice(queueName, {
+      type: MSG.CONVERSATION,
+      data: {
+        prompt,
+      },
     });
-  }
 
-  @SubscribeMessage(MSG.CANDIDATE)
-  async handleCandidate(
-    @CurrentUser('id') userId: number,
-    @MessageBody() data: any,
-  ) {
-    const { candidate, sdpMid, sdpMLineIndex, deviceId } = data;
-
-    const queueName = await this.getQueueName(deviceId, userId);
-
-    this.mqttService.publishToDevice(queueName, {
-      type: MSG.CANDIDATE,
-      data: { candidate, sdpMid, sdpMLineIndex },
-    });
-  }
-
-  @SubscribeMessage(MSG.CLOSE)
-  async handleClose(
-    @CurrentUser('id') userId: number,
-    @MessageBody() data: any,
-  ) {
-    const { deviceId } = data;
-
-    const queueName = await this.getQueueName(deviceId, userId);
-
-    this.mqttService.publishToDevice(queueName, { type: MSG.CLOSE });
+    if (result) {
+      await this.conversationService.addContent(userId, {
+        conversationId,
+        content: prompt,
+        speakerType: SPEAKER_TYPE.USER,
+      });
+    }
   }
 
   private async getQueueName(deviceId: number, userId: number) {
@@ -194,24 +165,30 @@ export class DeviceGateway
     return queueName;
   }
 
-  private async getDeviceId(machineId: string) {
-    const deviceId = await this.redisService.get(`machine:${machineId}`);
+  private async getIds(machineId: string) {
+    const ids = await this.redisService.get(`machine:${machineId}`);
 
-    if (deviceId) {
-      return deviceId;
+    if (ids) {
+      const [deviceId, userId] = ids.split('-');
+
+      return { deviceId, userId: Number(userId) };
     }
 
     const device = await this.deviceRepo.findOne({
       where: { machineId },
-      select: { id: true, machineId: true },
+      select: { id: true, machineId: true, user: true },
     });
 
     if (!device) {
       throw new WsException('Device not found');
     }
 
-    await this.redisService.set(`machine:${machineId}`, `${device.id}`, 120);
+    await this.redisService.set(
+      `machine:${machineId}`,
+      `${device.id}-${device.user!.id}`,
+      120,
+    );
 
-    return device.id;
+    return { deviceId: device.id, userId: device.user!.id };
   }
 }

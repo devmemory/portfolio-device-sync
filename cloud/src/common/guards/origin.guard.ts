@@ -8,7 +8,7 @@ import {
 export const allowOrigin = () => {
   let list: string[] = ['', process.env.CLIENT!];
 
-  const devMode = ['http://localhost:8080', 'http://localhost:9090'];
+  const devMode = ['http://localhost:8080'];
 
   const isDev = process.env.NODE_ENV === 'development';
 

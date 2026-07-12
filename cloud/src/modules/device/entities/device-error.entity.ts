@@ -1,15 +1,8 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Device } from './device.entity';
 
 @Entity('device_error')
+@Index('idx_device_error_pagination', ['device', 'id']) 
 export class DeviceError {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -24,7 +17,6 @@ export class DeviceError {
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   createdAt!: Date;
 
-  @Index('idx_device_error_device_id')
   @ManyToOne(() => Device, (device) => device.errors, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'device_id' })
   device!: Device;

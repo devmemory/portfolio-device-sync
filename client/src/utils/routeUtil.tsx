@@ -4,6 +4,7 @@ import Layout from "src/components/Layout";
 
 const Main = lazy(() => import("../routes/Main"));
 const Login = lazy(() => import("../routes/Auth/Login"));
+const Conversation = lazy(() => import("../routes/Conversation"));
 const Connection = lazy(() => import("../routes/Connection"));
 const Device = lazy(() => import("../routes/Device"));
 const DeviceError = lazy(() => import("../routes/Device/Error"));
@@ -14,6 +15,7 @@ export const routeName = {
   main: "/",
   login: "/auth/login",
   register: "/auth/register",
+  conversation: "/conversation",
   connection: "/connection",
   device: "/device",
   deviceError: "/device/error",
@@ -36,6 +38,10 @@ export const router = createBrowserRouter([
       {
         path: routeName.register,
         element: <Register />,
+      },
+      {
+        path: routeName.conversation,
+        element: <Conversation />,
       },
       {
         path: routeName.connection + "/:id",

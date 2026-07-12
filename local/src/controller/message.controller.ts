@@ -2,6 +2,7 @@ import { Channel, ChannelModel, connect, Message } from "amqplib";
 import { ERR_CODE, MQ_MSG, PAYLOAD_TYPE, SERVICE_NAME } from "../constants";
 import { MqConenctionModel } from "../models";
 import { serviceUtil } from "../util";
+import aiController from "./ai.controller";
 import deviceController from "./device.controller";
 import LifecycleController from "./lifecycle.controller";
 import webRTCController from "./webrtc.controller";
@@ -147,6 +148,16 @@ class MessageController {
               }
             });
           }, 100);
+          break;
+        case MQ_MSG.CONVERSATION:
+          const { text, uuid } = payload.data;
+
+          await aiController.askAI(text, (value) => {
+            this._publish({
+              type: MQ_MSG.CONVERSATION,
+              data: { text: value, uuid },
+            });
+          });
           break;
         default:
           deviceController.sendErr(

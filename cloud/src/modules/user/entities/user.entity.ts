@@ -1,17 +1,16 @@
 import { BaseTimeEntity } from '@/common';
+import { Conversation } from '@/modules/conversation/entities/conversation.entity';
 import { Device } from '@/modules/device/entities/device.entity';
 import { Column, Entity, Index, OneToMany } from 'typeorm';
 
 @Entity('users')
 export class User extends BaseTimeEntity {
-  @Index({ unique: true })
   @Column({ type: 'varchar', length: 50, unique: true })
   email!: string;
 
   @Column({ type: 'varchar', length: 200 })
   pw!: string;
 
-  @Index({ unique: true })
   @Column({ type: 'varchar', length: 20, unique: true })
   name!: string;
 
@@ -32,4 +31,7 @@ export class User extends BaseTimeEntity {
 
   @OneToMany(() => Device, (device) => device.user)
   devices?: Device[];
+
+  @OneToMany(() => Conversation, (conversation) => conversation.user)
+  conversations?: Conversation[];
 }

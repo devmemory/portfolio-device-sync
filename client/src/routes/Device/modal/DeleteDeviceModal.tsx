@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import React from "react";
 import { Button } from "src/components/Button";
 import { Modal } from "src/components/Modal";
-import { apiManager } from "src/services/ApiManager";
+import { apiManager } from "src/services/api/ApiManager";
 import { commonUtil } from "src/utils";
 
 interface Props {

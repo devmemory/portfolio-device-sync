@@ -5,7 +5,7 @@ import {
   MSG,
   WebRTC_CMD,
 } from "src/constants";
-import { WsService } from "../ws";
+import { WsService } from "./ws";
 
 interface IceCandidateModel {
   candidate: string;
@@ -23,7 +23,7 @@ export class WebRTCService extends WsService {
   public connectionState: CONNECTION_TYPE = CONNECTION_STATE.offline;
 
   constructor(private deviceId: number) {
-    super(deviceId);
+    super({ deviceId, url: `${import.meta.env.VITE_WS_BASE_URL}/device` });
   }
 
   initPeer = () => {

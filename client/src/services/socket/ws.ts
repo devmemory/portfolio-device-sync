@@ -2,15 +2,18 @@ import { io, Socket } from "socket.io-client";
 import { MSG, WebRTC_CMD } from "src/constants";
 import { authUtil } from "src/utils";
 import { popupEventBus } from "src/utils/popupUtil";
-import { refreshToken } from "./ApiErrorHandler";
+import { refreshToken } from "../api/ApiErrorHandler";
+
+interface Props {
+  deviceId: number;
+  url: string;
+}
 
 export class WsService {
   private socket!: Socket;
 
-  constructor(deviceId: number) {
+  constructor({ deviceId, url }: Props) {
     const token = authUtil.getToken.accessToken;
-
-    const url = `${import.meta.env.VITE_WS_BASE_URL}/device`;
 
     this.socket = io(url, {
       transportOptions: {
@@ -35,8 +38,8 @@ export class WsService {
 
       if (message.includes("Expired") || message.includes("Unauthorized")) {
         const res = await refreshToken();
-        
-        if(res){
+
+        if (res) {
           window.location.reload();
         }
       }

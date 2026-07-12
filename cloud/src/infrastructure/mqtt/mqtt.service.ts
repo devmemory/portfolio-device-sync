@@ -1,4 +1,4 @@
-import { eventEmitter, MSG, REALTIME_EVENT } from '@/common';
+import { eventEmitter, MSG, SERVICE_NAME } from '@/common';
 import { HttpService } from '@nestjs/axios';
 import {
   Injectable,
@@ -68,34 +68,30 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
 
     await channel.prefetch(1);
 
-    await channel.consume(
-      this.upstreamQueue,
-      async (message) => {
-        if (!message) {
-          return;
+    await channel.consume(this.upstreamQueue, async (message) => {
+      if (!message) {
+        return;
+      }
+
+      try {
+        const payload = JSON.parse(message.content.toString());
+        console.log(`[mq] Received message`, payload);
+
+        channel.ack(message);
+        if (payload.type === MSG.CHECK) {
+          const { machineId, result } = payload.data;
+
+          eventEmitter.emit(machineId, result);
+        } else if (payload.type === MSG.CONVERSATION) {
+          eventEmitter.emit(SERVICE_NAME.AI, payload);
+        } else {
+          eventEmitter.emit(SERVICE_NAME.MEDIA, payload);
         }
-
-        try {
-          const payload = JSON.parse(message.content.toString());
-          console.log(`[mq] Received message`, payload);
-
-          channel.ack(message);
-          if (payload.type === MSG.CHECK) {
-            const { machineId, result } = payload.data;
-
-            eventEmitter.emit(machineId, result);
-          } else {
-            eventEmitter.emit(REALTIME_EVENT, payload);
-          }
-        } catch (error) {
-          this.logger.error(
-            `[mq] Failed to consume message from device`,
-            error,
-          );
-          channel.nack(message, false, false);
-        }
-      },
-    );
+      } catch (error) {
+        this.logger.error(`[mq] Failed to consume message from device`, error);
+        channel.nack(message, false, false);
+      }
+    });
   }
 
   async onModuleDestroy() {

@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { SubmitEvent, useEffect, useState } from "react";
 import { DeviceInfoModel } from "src/models";
-import { apiManager } from "src/services/ApiManager";
+import { apiManager } from "src/services/api/ApiManager";
 import { commonUtil } from "src/utils";
 import { popupEventBus } from "src/utils/popupUtil";
 

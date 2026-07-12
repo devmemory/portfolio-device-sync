@@ -66,12 +66,19 @@ const DeviceList = () => {
                     <div className="flex flex-wrap gap-2">
                       <Button
                         onClick={() =>
+                          onConnectDevice(device.id, SERVICE_NAME.AI)
+                        }
+                      >
+                        Connect AI
+                      </Button>
+                      <Button
+                        onClick={() =>
                           onConnectDevice(device.id, SERVICE_NAME.MEDIA)
                         }
                         variant="secondary"
                         disabled={isPendingConnection}
                       >
-                        Connect
+                        Connect Media
                       </Button>
                       <Button
                         onClick={() => onOpenRemove(device.id)}

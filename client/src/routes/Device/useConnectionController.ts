@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { MSG, SERVICE_NAME } from "src/constants";
 import { MsgModel } from "src/models";
-import { apiManager } from "src/services/ApiManager";
+import { apiManager } from "src/services/api/ApiManager";
 import { popupEventBus } from "src/utils/popupUtil";
 import { routeName } from "src/utils/routeUtil";
 
@@ -33,7 +33,7 @@ const useConnectionController = () => {
 
       switch (service) {
         case SERVICE_NAME.AI:
-          console.log(":p");
+          navigate(routeName.conversation);
           break;
         case SERVICE_NAME.MEDIA:
           navigate(routeName.connection + `/${deviceId}`);
@@ -49,7 +49,7 @@ const useConnectionController = () => {
 
   return {
     onConnectDevice,
-    isPendingConnection
+    isPendingConnection,
   };
 };
 

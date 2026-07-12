@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { CONNECTION_STATE, CONNECTION_TYPE } from "src/constants";
-import { WebRTCService } from "src/services/webrtc/webRTC";
+import { WebRTCService } from "src/services/socket/webRTC";
 import { popupEventBus } from "src/utils/popupUtil";
 
 const useConnectionController = () => {

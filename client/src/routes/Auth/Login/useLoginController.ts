@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import React, { SubmitEvent } from "react";
 import { useNavigate } from "react-router";
 import { AuthSignInModel } from "src/models";
-import { apiManager } from "src/services/ApiManager";
+import { apiManager } from "src/services/api/ApiManager";
 import { commonUtil } from "src/utils";
 import { popupEventBus } from "src/utils/popupUtil";
 import { routeName } from "src/utils/routeUtil";
