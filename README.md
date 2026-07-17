@@ -1,3 +1,7 @@
+<p>
+   <strong>English</strong> | <a href="./README_KR.md">한국어</a>
+</p>
+
 # Remote Edge Camera Platform
 
 > Designing a distributed edge platform for secure remote access to edge devices under real-world network constraints.
