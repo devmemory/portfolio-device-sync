@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/require-await */
-import { eventEmitter, MSG, REALTIME_EVENT } from '@/common';
+import { eventEmitter, MSG, SERVICE_NAME } from '@/common';
 import { WsException } from '@nestjs/websockets';
 import { DeviceGateway } from './device.gateway';
 
 describe('DeviceGateway', () => {
   let gateway: DeviceGateway;
   let deviceRepo: any;
-  let mqttService: any;
+  let amqpService: any;
   let redisService: any;
   let server: any;
 
@@ -17,7 +17,7 @@ describe('DeviceGateway', () => {
     deviceRepo = {
       findOne: jest.fn(),
     };
-    mqttService = {
+    amqpService = {
       consumeJson: jest.fn(),
       publishToDevice: jest.fn(),
     };
@@ -30,7 +30,7 @@ describe('DeviceGateway', () => {
       emit: jest.fn(),
     };
 
-    gateway = new DeviceGateway(deviceRepo, mqttService, redisService);
+    gateway = new DeviceGateway(deviceRepo, amqpService, redisService);
     gateway.server = server;
   });
 
@@ -39,7 +39,10 @@ describe('DeviceGateway', () => {
 
     gateway.onModuleInit();
 
-    expect(onSpy).toHaveBeenCalledWith(REALTIME_EVENT, expect.any(Function));
+    expect(onSpy).toHaveBeenCalledWith(
+      SERVICE_NAME.MEDIA,
+      expect.any(Function),
+    );
   });
 
   it('unsubscribes from realtime payload events on module destroy', () => {
@@ -47,7 +50,10 @@ describe('DeviceGateway', () => {
 
     gateway.onModuleDestroy();
 
-    expect(offSpy).toHaveBeenCalledWith(REALTIME_EVENT, expect.any(Function));
+    expect(offSpy).toHaveBeenCalledWith(
+      SERVICE_NAME.MEDIA,
+      expect.any(Function),
+    );
   });
 
   it('joins a room, requests TURN signaling, and publishes close on socket disconnect', async () => {
@@ -60,7 +66,7 @@ describe('DeviceGateway', () => {
     gateway.handleDisconnect(client as any);
 
     expect(client.join).toHaveBeenCalledWith('room-10');
-    expect(mqttService.publishToDevice).toHaveBeenCalledWith(
+    expect(amqpService.publishToDevice).toHaveBeenCalledWith(
       'q_device_machine-1',
       expect.objectContaining({
         type: MSG.SIGNAL,
@@ -71,7 +77,7 @@ describe('DeviceGateway', () => {
         }),
       }),
     );
-    expect(mqttService.publishToDevice).toHaveBeenCalledWith(
+    expect(amqpService.publishToDevice).toHaveBeenCalledWith(
       'q_device_machine-1',
       { type: MSG.CLOSE },
     );
@@ -92,7 +98,7 @@ describe('DeviceGateway', () => {
       'q_device_machine-1',
       3600,
     );
-    expect(mqttService.publishToDevice).toHaveBeenCalledWith(
+    expect(amqpService.publishToDevice).toHaveBeenCalledWith(
       'q_device_machine-1',
       { type: MSG.OFFER, data: { sdp: 'offer-sdp', type: 'offer' } },
     );
@@ -108,7 +114,7 @@ describe('DeviceGateway', () => {
       sdpMLineIndex: 0,
     });
 
-    expect(mqttService.publishToDevice).toHaveBeenCalledWith(
+    expect(amqpService.publishToDevice).toHaveBeenCalledWith(
       'q_device_machine-1',
       {
         type: MSG.CANDIDATE,
@@ -128,10 +134,10 @@ describe('DeviceGateway', () => {
         type: 'offer',
       }),
     ).rejects.toThrow(WsException);
-    expect(mqttService.publishToDevice).not.toHaveBeenCalled();
+    expect(amqpService.publishToDevice).not.toHaveBeenCalled();
   });
 
-  it('emits answer messages from MQTT to the device room', async () => {
+  it('emits answer messages from AMQP to the device room', async () => {
     redisService.get.mockResolvedValue(null);
     deviceRepo.findOne.mockResolvedValue({ id: 10, machineId: 'machine-1' });
 
@@ -147,7 +153,7 @@ describe('DeviceGateway', () => {
     });
   });
 
-  it('emits candidate messages from MQTT to the device room', async () => {
+  it('emits candidate messages from AMQP to the device room', async () => {
     redisService.get.mockResolvedValue('10');
 
     await (gateway as any).subscribe({
@@ -168,7 +174,7 @@ describe('DeviceGateway', () => {
     });
   });
 
-  it('throws WsException when an MQTT payload references an unknown device', async () => {
+  it('throws WsException when an AMQP payload references an unknown device', async () => {
     redisService.get.mockResolvedValue(null);
     deviceRepo.findOne.mockResolvedValue(null);
 

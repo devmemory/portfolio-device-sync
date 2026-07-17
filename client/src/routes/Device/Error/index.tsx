@@ -61,7 +61,7 @@ const DeviceError = () => {
               Error history
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-ink-600">
-              Review recent local agent, MQTT, ffmpeg, UDP, and WebRTC errors
+              Review recent local agent, AMQP, ffmpeg, UDP, and WebRTC errors
               reported by this device.
             </p>
           </div>

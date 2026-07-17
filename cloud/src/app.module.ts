@@ -12,7 +12,7 @@ import {
   TypeOrmExceptionFilter,
 } from './common';
 import { DatabaseService } from './DatabaseService';
-import { MqttModule } from './infrastructure/mqtt/mqtt.module';
+import { AmqpModule } from './infrastructure/amqp/amqp.module';
 import { RedisModule } from './infrastructure/redis/redis.module';
 import { DeviceModule } from './modules/device/device.module';
 import { UserModule } from './modules/user/user.module';
@@ -44,7 +44,7 @@ import { ConversationModule } from './modules/conversation/conversation.module';
       ],
     }),
     RedisModule,
-    MqttModule,
+    AmqpModule,
     ConversationModule,
     DeviceModule,
     UserModule,

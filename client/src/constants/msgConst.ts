@@ -1,7 +1,9 @@
 export const MSG = {
   SIGNAL: "SIGNAL",
   JOIN: "JOIN",
-  CHECK: 'CHECK'
+  CHECK: "CHECK",
+  CONVERSATION: "CONVERSATION",
+  READY: "READY",
 } as const;
 
 export const WebRTC_CMD = {

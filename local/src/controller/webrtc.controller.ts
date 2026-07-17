@@ -17,6 +17,10 @@ class WebRTCController {
   public iceCandidateQueue: IceCandidateModel[] = [];
   public isConnected = false;
 
+  get isReady() {
+    return !this.ffmpegProcess && !this.udpServer;
+  }
+
   init = async (data?: any) => {
     if (this.isInit) {
       return;
@@ -31,7 +35,12 @@ class WebRTCController {
     await this.dispose();
 
     this.peerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }, this.turnInfo],
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" },
+        { urls: "stun:stun.cloudflare.com:3478" },
+        this.turnInfo,
+      ],
       icePortRange: [49152, 65535],
     });
 

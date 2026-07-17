@@ -68,6 +68,7 @@ const DeviceList = () => {
                         onClick={() =>
                           onConnectDevice(device.id, SERVICE_NAME.AI)
                         }
+                        disabled={isPendingConnection}
                       >
                         Connect AI
                       </Button>

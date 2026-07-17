@@ -34,12 +34,12 @@ export class ConversationService {
       const content = manager.create(Content, {
         content: message,
         speakerType: SPEAKER_TYPE.USER,
-        list: savedConversation,
+        conversation: savedConversation,
       });
 
       await manager.save(Content, content);
 
-      return true;
+      return savedConversation.id;
     });
   }
 
@@ -53,7 +53,6 @@ export class ConversationService {
         title: true,
         createdAt: true,
         updatedAt: true,
-        user: true
       },
       skip,
       take,
@@ -72,8 +71,10 @@ export class ConversationService {
 
     const [list, total] = await this.contentRepo.findAndCount({
       where: { conversation: { id: conversationId, user: { id: userId } } },
+      relations: { conversation: true },
       skip,
       take,
+      order: { createdAt: 'ASC' },
     });
 
     return { list, total };
@@ -82,14 +83,7 @@ export class ConversationService {
   async addContent(userId: number, dto: AddContentDto) {
     const { conversationId, content, speakerType } = dto;
 
-    const conversation = await this.conversationRepo.findOne({
-      where: { id: conversationId, user: { id: userId } },
-      select: { id: true, user: true },
-    });
-
-    if (!conversation) {
-      throw new NotFoundException('Conversation is not found.');
-    }
+    const conversation = await this.getOwnedConversation(userId, conversationId);
 
     const newContent = this.contentRepo.create({
       conversation,
@@ -98,5 +92,27 @@ export class ConversationService {
     });
 
     return await this.contentRepo.save(newContent);
+  }
+
+  async deleteConversation(userId: number, conversationId: number) {
+    const conversation = await this.getOwnedConversation(userId, conversationId);
+
+    await this.conversationRepo.softDelete(conversation.id);
+
+    return true;
+  }
+
+  async getOwnedConversation(userId: number, conversationId: number) {
+    const conversation = await this.conversationRepo.findOne({
+      where: { id: conversationId, user: { id: userId } },
+      select: { id: true, user: true },
+      relations: { user: true },
+    });
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation is not found.');
+    }
+
+    return conversation;
   }
 }

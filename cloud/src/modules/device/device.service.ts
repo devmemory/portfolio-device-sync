@@ -1,5 +1,5 @@
 import { eventEmitter, getPagination, MSG, PaginationDto } from '@/common';
-import { MqttService } from '@/infrastructure/mqtt/mqtt.service';
+import { AmqpService } from '@/infrastructure/amqp/amqp.service';
 import { RedisService } from '@/infrastructure/redis/redis.service';
 import {
   BadRequestException,
@@ -30,7 +30,7 @@ export class DeviceService {
     private readonly infoRepo: Repository<DeviceInfo>,
     @InjectRepository(DeviceError)
     private readonly errorRepo: Repository<DeviceError>,
-    private readonly mqttService: MqttService,
+    private readonly amqpService: AmqpService,
     private readonly redisService: RedisService,
     private readonly deviceUtil: DeviceUtil,
   ) {}
@@ -42,7 +42,7 @@ export class DeviceService {
 
     const queueName = deviceNameUtil.getQueueName(machineId);
 
-    await this.mqttService.publishToDevice(queueName, message);
+    await this.amqpService.publishToDevice(queueName, message);
 
     let timeoutId: NodeJS.Timeout;
 
@@ -139,11 +139,11 @@ export class DeviceService {
     const { encrypt, decrypt } = this.deviceUtil;
 
     if (!username || !password) {
-      const newAccount = await this.mqttService.createDynamicUser(machineId);
+      const newAccount = await this.amqpService.createDynamicUser(machineId);
 
       const queueName = deviceNameUtil.getQueueName(machineId);
 
-      await this.mqttService.createQueue(queueName);
+      await this.amqpService.createQueue(queueName);
 
       username = newAccount.username;
       password = newAccount.password;
@@ -182,11 +182,11 @@ export class DeviceService {
     if (device.info?.userId) {
       const queueName = deviceNameUtil.getQueueName(device.machineId);
 
-      await this.mqttService.publishToDevice(queueName, { type: MSG.DELETE });
+      await this.amqpService.publishToDevice(queueName, { type: MSG.DELETE });
 
-      await this.mqttService.deleteUser(device.info.userId);
+      await this.amqpService.deleteUser(device.info.userId);
 
-      await this.mqttService.deleteQueue(queueName);
+      await this.amqpService.deleteQueue(queueName);
 
       await this.redisService.del(`machine:${device.machineId}`);
     }

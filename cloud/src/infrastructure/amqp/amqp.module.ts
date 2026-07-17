@@ -1,11 +1,11 @@
 import { HttpModule } from '@nestjs/axios';
 import { Global, Module } from '@nestjs/common';
-import { MqttService } from './mqtt.service';
+import { AmqpService } from './amqp.service';
 
 @Global()
 @Module({
   imports: [HttpModule],
-  providers: [MqttService],
-  exports: [MqttService],
+  providers: [AmqpService],
+  exports: [AmqpService],
 })
-export class MqttModule {}
+export class AmqpModule {}

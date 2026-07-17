@@ -16,7 +16,7 @@ const Register = () => {
         <p className="text-sm font-semibold text-primary-700">Create account</p>
         <h1 className="mt-1 text-2xl font-bold text-ink-900">Register</h1>
         <p className="mt-2 text-sm text-ink-600">
-          Create an account before pairing MQTT devices.
+          Create an account before pairing AMQP devices.
         </p>
       </AuthCard.Header>
       <AuthCard.Body>

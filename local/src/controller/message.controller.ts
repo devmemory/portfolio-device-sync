@@ -66,8 +66,17 @@ class MessageController {
           this.channel.ack(msg);
 
           lifecycle.startMdns();
-          await lifecycle.stopMqtt();
+          await lifecycle.stopAMQP();
 
+          break;
+        case MQ_MSG.READY:
+          if (webRTCController.isReady) {
+            await webRTCController.dispose();
+          }
+
+          this.channel.ack(msg);
+
+          this._publish({ type: MQ_MSG.READY, data: { result: true } });
           break;
         case MQ_MSG.CHECK:
           if (payload.data === SERVICE_NAME.AI) {
@@ -150,14 +159,25 @@ class MessageController {
           }, 100);
           break;
         case MQ_MSG.CONVERSATION:
-          const { text, uuid } = payload.data;
+          const { prompt, conversationId } = payload.data;
 
-          await aiController.askAI(text, (value) => {
+          let content = "";
+
+          await aiController.askAI(prompt, (result) => {
+            content += result;
+
             this._publish({
               type: MQ_MSG.CONVERSATION,
-              data: { text: value, uuid },
+              data: { result, conversationId },
             });
           });
+
+          this._publish({
+            type: MQ_MSG.SAVE_CONTENT,
+            data: { result: content, conversationId },
+          });
+
+          this.channel.ack(msg);
           break;
         default:
           deviceController.sendErr(

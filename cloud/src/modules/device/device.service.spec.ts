@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 import { eventEmitter, MSG } from '@/common';
-import { MqttService } from '@/infrastructure/mqtt/mqtt.service';
+import { AmqpService } from '@/infrastructure/amqp/amqp.service';
 import { RedisService } from '@/infrastructure/redis/redis.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -16,7 +16,7 @@ describe('DeviceService', () => {
   let deviceRepo: any;
   let infoRepo: any;
   let errorRepo: any;
-  let mqttService: any;
+  let amqpService: any;
   let redisService: any;
   let deviceUtil: any;
 
@@ -38,7 +38,7 @@ describe('DeviceService', () => {
       create: jest.fn((value) => value),
       save: jest.fn(),
     };
-    mqttService = {
+    amqpService = {
       publishToDevice: jest.fn(),
       createDynamicUser: jest.fn(),
       createQueue: jest.fn(),
@@ -61,7 +61,7 @@ describe('DeviceService', () => {
         { provide: getRepositoryToken(Device), useValue: deviceRepo },
         { provide: getRepositoryToken(DeviceInfo), useValue: infoRepo },
         { provide: getRepositoryToken(DeviceError), useValue: errorRepo },
-        { provide: MqttService, useValue: mqttService },
+        { provide: AmqpService, useValue: amqpService },
         { provide: RedisService, useValue: redisService },
         { provide: DeviceUtil, useValue: deviceUtil },
       ],
@@ -73,7 +73,7 @@ describe('DeviceService', () => {
   describe('sendMsg', () => {
     it('publishes to the cached owned-device queue and resolves with the device response', async () => {
       redisService.get.mockResolvedValue('machine-1');
-      mqttService.publishToDevice.mockResolvedValue(true);
+      amqpService.publishToDevice.mockResolvedValue(true);
       let responseListener: ((value: boolean) => void) | undefined;
       jest.spyOn(eventEmitter, 'once').mockImplementation((event, listener) => {
         expect(event).toBe('machine-1');
@@ -89,7 +89,7 @@ describe('DeviceService', () => {
       await new Promise((resolve) => setImmediate(resolve));
       responseListener?.(true);
 
-      expect(mqttService.publishToDevice).toHaveBeenCalledWith(
+      expect(amqpService.publishToDevice).toHaveBeenCalledWith(
         'q_device_machine-1',
         { type: MSG.STATUS },
       );
@@ -108,7 +108,7 @@ describe('DeviceService', () => {
       await expect(
         service.sendMsg(7, { deviceId: 10, message: { type: MSG.STATUS } }),
       ).rejects.toThrow(BadRequestException);
-      expect(mqttService.publishToDevice).not.toHaveBeenCalled();
+      expect(amqpService.publishToDevice).not.toHaveBeenCalled();
     });
   });
 
@@ -166,7 +166,7 @@ describe('DeviceService', () => {
         machineId: 'machine-1',
         info: null,
       });
-      mqttService.createDynamicUser.mockResolvedValue({
+      amqpService.createDynamicUser.mockResolvedValue({
         username: 'mq-user',
         password: 'mq-pass',
       });
@@ -175,8 +175,8 @@ describe('DeviceService', () => {
         username: 'mq-user',
         password: 'mq-pass',
       });
-      expect(mqttService.createDynamicUser).toHaveBeenCalledWith('machine-1');
-      expect(mqttService.createQueue).toHaveBeenCalledWith(
+      expect(amqpService.createDynamicUser).toHaveBeenCalledWith('machine-1');
+      expect(amqpService.createQueue).toHaveBeenCalledWith(
         'q_device_machine-1',
       );
       expect(infoRepo.create).toHaveBeenCalledWith({
@@ -203,7 +203,7 @@ describe('DeviceService', () => {
         username: 'mq-user',
         password: 'decrypted:ciphertext',
       });
-      expect(mqttService.createDynamicUser).not.toHaveBeenCalled();
+      expect(amqpService.createDynamicUser).not.toHaveBeenCalled();
     });
 
     it('throws when the device is missing', async () => {
@@ -224,12 +224,12 @@ describe('DeviceService', () => {
       });
 
       await expect(service.deleteDevice(10)).resolves.toBe(true);
-      expect(mqttService.publishToDevice).toHaveBeenCalledWith(
+      expect(amqpService.publishToDevice).toHaveBeenCalledWith(
         'q_device_machine-1',
         { type: MSG.DELETE },
       );
-      expect(mqttService.deleteUser).toHaveBeenCalledWith('mq-user');
-      expect(mqttService.deleteQueue).toHaveBeenCalledWith(
+      expect(amqpService.deleteUser).toHaveBeenCalledWith('mq-user');
+      expect(amqpService.deleteQueue).toHaveBeenCalledWith(
         'q_device_machine-1',
       );
       expect(deviceRepo.delete).toHaveBeenCalledWith({ id: 10 });

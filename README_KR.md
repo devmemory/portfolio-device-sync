@@ -13,15 +13,24 @@
 
 ---
 
+### 아키텍쳐 요약
+<img src="./document/flow_chart.jpg"/>
+
+---
+
+### 실행 화면
+#### Pairing, WebRTC, AI chatting
+<img src="./document/examples/pairing.gif"/>
+
+<img src="./document/examples/webrtc.gif"/>
+<img src="./document/examples/ai.gif"/>
+
+---
+
 ### 제약조건
 1. 유저는 네트워크 장비(공유기)를 건드리지 않게 할 것
 2. 보안에 문제를 최대한 신경 쓸 것
 3. Double NAT 환경에서도 안정적으로 연결할 것
-
----
-
-### 아키텍쳐
-<img src="./document/flow_chart.jpg"/>
 
 ---
 
@@ -103,7 +112,7 @@
 ├── cloud/                     # NestJS 11 제어 평면 및 시그널링 브릿지
 │   ├── src/
 │   │   ├── common/            # 가드, 필터, DTO, 응답 및 유틸리티
-│   │   ├── infrastructure/    # MQTT 및 Redis 연동 모듈
+│   │   ├── infrastructure/    # AMQP 및 Redis 연동 모듈
 │   │   ├── modules/           # 디바이스 및 사용자 도메인 모듈
 │   │   ├── app.module.ts
 │   │   └── main.ts

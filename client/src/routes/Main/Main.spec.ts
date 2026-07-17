@@ -18,10 +18,10 @@ vi.mock("src/utils", async (importOriginal) => {
 });
 
 describe("Main page", () => {
-  it("renders the MQTT console landing content", () => {
+  it("renders the AMQP console landing content", () => {
     const html = renderToStaticMarkup(React.createElement(Main));
 
-    expect(html).toContain("MQTT device console");
+    expect(html).toContain("AMQP device console");
     expect(html).toContain("Open devices");
     expect(html).toContain("Sign in");
   });

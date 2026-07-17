@@ -4,8 +4,8 @@
   "settings": {
     "width": 2000,
     "height": 2000,
-    "scrollTop": -455.6884,
-    "scrollLeft": -661.6667,
+    "scrollTop": -594.8551,
+    "scrollLeft": -691.6666,
     "zoomLevel": 0.79,
     "show": 431,
     "database": 16,
@@ -165,7 +165,7 @@
       "UG0Em9M70y13RLBtwpNGa": {
         "id": "UG0Em9M70y13RLBtwpNGa",
         "name": "device_info",
-        "comment": "device mqtt information",
+        "comment": "device amqp information",
         "columnIds": [
           "VlMbsxW8axjus-nR_AeoS",
           "HKYL5QLLlrSIjdZsjD3Sm",
@@ -183,11 +183,11 @@
           "y": 773.4834,
           "zIndex": 56,
           "widthName": 67,
-          "widthComment": 137,
+          "widthComment": 142,
           "color": ""
         },
         "meta": {
-          "updateAt": 1778849840687,
+          "updateAt": 1784183793444,
           "createAt": 1778426375901
         }
       },

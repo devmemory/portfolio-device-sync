@@ -40,7 +40,7 @@ export const router = createBrowserRouter([
         element: <Register />,
       },
       {
-        path: routeName.conversation,
+        path: routeName.conversation + "/:id",
         element: <Conversation />,
       },
       {

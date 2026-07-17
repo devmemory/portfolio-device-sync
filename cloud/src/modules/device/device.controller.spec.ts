@@ -118,7 +118,7 @@ describe('DeviceController', () => {
       expect(service.getStatus).toHaveBeenCalledWith('machine-1');
     });
 
-    it('getMqAccount: should return MQTT account credentials', async () => {
+    it('getMqAccount: should return AMQP account credentials', async () => {
       const dto: MachineIdDto = { machineId: 'machine-1' };
       const expected = { username: 'mq-user', password: 'mq-pass' };
       mockDeviceService.getMqAccount.mockResolvedValue(expected);

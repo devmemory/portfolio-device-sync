@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/require-await */
-import { eventEmitter, MSG, REALTIME_EVENT } from '@/common';
+import { eventEmitter, MSG, SERVICE_NAME } from '@/common';
 import { HttpService } from '@nestjs/axios';
 import amqp from 'amqp-connection-manager';
 import { of, throwError } from 'rxjs';
-import { MqttService } from './mqtt.service';
+import { AmqpService } from './amqp.service';
 
 jest.mock('amqp-connection-manager', () => ({
   __esModule: true,
@@ -12,8 +12,8 @@ jest.mock('amqp-connection-manager', () => ({
   },
 }));
 
-describe('MqttService', () => {
-  let service: MqttService;
+describe('AmqpService', () => {
+  let service: AmqpService;
   let httpService: any;
   let connection: any;
   let channelWrapper: any;
@@ -53,7 +53,7 @@ describe('MqttService', () => {
       put: jest.fn(),
       delete: jest.fn(),
     };
-    service = new MqttService(httpService as HttpService);
+    service = new AmqpService(httpService as HttpService);
   });
 
   afterEach(() => {
@@ -98,7 +98,7 @@ describe('MqttService', () => {
 
     expect(rawChannel.prefetch).toHaveBeenCalledWith(1);
     expect(rawChannel.ack).toHaveBeenCalledWith(message);
-    expect(emitSpy).toHaveBeenCalledWith(REALTIME_EVENT, { ok: true });
+    expect(emitSpy).toHaveBeenCalledWith(SERVICE_NAME.MEDIA, { ok: true });
   });
 
   it('nacks malformed JSON without calling the handler', async () => {

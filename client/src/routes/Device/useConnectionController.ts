@@ -33,7 +33,7 @@ const useConnectionController = () => {
 
       switch (service) {
         case SERVICE_NAME.AI:
-          navigate(routeName.conversation);
+          navigate(`${routeName.conversation}/${deviceId}`);
           break;
         case SERVICE_NAME.MEDIA:
           navigate(routeName.connection + `/${deviceId}`);

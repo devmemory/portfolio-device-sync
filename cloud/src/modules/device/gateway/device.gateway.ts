@@ -7,7 +7,7 @@ import {
   WsExceptionFilter,
   WsJwtGuard,
 } from '@/common';
-import { MqttService } from '@/infrastructure/mqtt/mqtt.service';
+import { AmqpService } from '@/infrastructure/amqp/amqp.service';
 import { RedisService } from '@/infrastructure/redis/redis.service';
 import {
   OnModuleDestroy,
@@ -48,7 +48,7 @@ export class DeviceGateway
   constructor(
     @InjectRepository(Device)
     private readonly deviceRepo: Repository<Device>,
-    private readonly mqttService: MqttService,
+    private readonly amqpService: AmqpService,
     private readonly redisService: RedisService,
   ) {}
 
@@ -64,7 +64,7 @@ export class DeviceGateway
     const queueName = (client as any).queueName;
 
     if (queueName) {
-      this.mqttService.publishToDevice(queueName, { type: MSG.CLOSE });
+      this.amqpService.publishToDevice(queueName, { type: MSG.CLOSE });
       console.log(`[ws] Client left. Sent close to ${queueName}`);
     }
   }
@@ -87,7 +87,7 @@ export class DeviceGateway
 
     const turnInfo = getTurnInfo();
 
-    this.mqttService.publishToDevice(queueName, {
+    this.amqpService.publishToDevice(queueName, {
       type: MSG.SIGNAL,
       data: turnInfo,
     });
@@ -137,7 +137,7 @@ export class DeviceGateway
 
     const queueName = await this.getQueueName(deviceId, userId);
 
-    this.mqttService.publishToDevice(queueName, {
+    this.amqpService.publishToDevice(queueName, {
       type: MSG.OFFER,
       data: { sdp, type },
     });
@@ -152,7 +152,7 @@ export class DeviceGateway
 
     const queueName = await this.getQueueName(deviceId, userId);
 
-    this.mqttService.publishToDevice(queueName, {
+    this.amqpService.publishToDevice(queueName, {
       type: MSG.CANDIDATE,
       data: { candidate, sdpMid, sdpMLineIndex },
     });
@@ -167,7 +167,7 @@ export class DeviceGateway
 
     const queueName = await this.getQueueName(deviceId, userId);
 
-    this.mqttService.publishToDevice(queueName, { type: MSG.CLOSE });
+    this.amqpService.publishToDevice(queueName, { type: MSG.CLOSE });
   }
 
   private async getQueueName(deviceId: number, userId: number) {

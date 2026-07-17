@@ -1,40 +1,70 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { PageModel } from "src/models";
 import { apiManager } from "src/services/api/ApiManager";
-
-const initialPageModel: PageModel = {
-  page: 1,
-  limit: 30,
-  order: "DESC",
-  orderBy: "updatedAt",
-};
+import { popupEventBus } from "src/utils/popupUtil";
 
 const useConversationController = () => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [message, setMessage] = useState("");
+  const [removingConversationId, setRemovingConversationId] = useState<
+    number | null
+  >(null);
+  const [pageModel, setPageModel] = useState<PageModel>({ page: 1, limit: 10 });
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["conversationList", initialPageModel],
-    queryFn: () => apiManager.conversationApi.getList(initialPageModel),
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ["conversationList", pageModel],
+    queryFn: () => apiManager.conversationApi.getList(pageModel),
   });
 
-  useEffect(() => {
-    if (selectedId === null && data?.list.length) {
-      setSelectedId(data.list[0].id);
-    }
-  }, [data?.list, selectedId]);
+  const selectedConversation = useMemo(() => {
+    return (
+      data?.list.find((conversation) => conversation.id === selectedId) ?? null
+    );
+  }, [data, selectedId]);
 
-  const selectedConversation =
-    data?.list.find((conversation) => conversation.id === selectedId) ?? null;
+  const onNewConversation = () => {
+    setSelectedId(null);
+  };
+
+  const onConversationCreated = (conversationId: number) => {
+    setSelectedId(conversationId);
+    refetch();
+  };
+
+  const onOpenRemove = (conversationId: number) => {
+    setRemovingConversationId(conversationId);
+  };
+
+  const onCancelRemove = () => {
+    setRemovingConversationId(null);
+  };
+
+  const onConfirmRemove = (value?: boolean) => {
+    if (!value) {
+      popupEventBus.emit("Failed to delete conversation");
+      return;
+    }
+
+    if (selectedId === removingConversationId) {
+      onNewConversation();
+    }
+
+    setRemovingConversationId(null);
+    refetch();
+    popupEventBus.emit("Conversation deleted successfully");
+  };
 
   return {
     conversations: data?.list ?? [],
     selectedConversation,
     selectedId,
     onSelectConversation: setSelectedId,
-    message,
-    onChangeMessage: setMessage,
+    onNewConversation,
+    onConversationCreated,
+    removingConversationId,
+    onOpenRemove,
+    onCancelRemove,
+    onConfirmRemove,
     isLoading,
     isError,
   };

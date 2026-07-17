@@ -3,11 +3,11 @@ export interface Conversation {
   title: string;
   createdAt: string;
   updatedAt: string;
-  contents?: ConversationContent[];
 }
 
 export interface ConversationContent {
   id: number;
   content: string;
-  speakerType: string;
+  speakerType: 0 | 1;
+  createdAt: string;
 }

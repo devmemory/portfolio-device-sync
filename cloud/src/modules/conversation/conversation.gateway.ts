@@ -7,7 +7,7 @@ import {
   WsExceptionFilter,
   WsJwtGuard,
 } from '@/common';
-import { MqttService } from '@/infrastructure/mqtt/mqtt.service';
+import { AmqpService } from '@/infrastructure/amqp/amqp.service';
 import { RedisService } from '@/infrastructure/redis/redis.service';
 import {
   OnModuleDestroy,
@@ -50,7 +50,7 @@ export class ConversationGateway
     @InjectRepository(Device)
     private readonly deviceRepo: Repository<Device>,
     private readonly conversationService: ConversationService,
-    private readonly mqttService: MqttService,
+    private readonly amqpService: AmqpService,
     private readonly redisService: RedisService,
   ) {}
 
@@ -66,7 +66,7 @@ export class ConversationGateway
     const queueName = (client as any).queueName;
 
     if (queueName) {
-      this.mqttService.publishToDevice(queueName, { type: MSG.CLOSE });
+      this.amqpService.publishToDevice(queueName, { type: MSG.CLOSE });
       console.log(`[ws] Client left. Sent close to ${queueName}`);
     }
   }
@@ -81,14 +81,20 @@ export class ConversationGateway
 
     const queueName = await this.getQueueName(deviceId, userId);
 
-    client.join(`room-${conversationId}`);
+    if (conversationId) {
+      await this.conversationService.getOwnedConversation(
+        userId,
+        conversationId,
+      );
+      client.join(`room-${conversationId}`);
+    }
 
     (client as any).queueName = queueName;
 
     console.log('[ws] join', { conversationId, queueName });
 
-    this.mqttService.publishToDevice(queueName, {
-      type: MSG.SIGNAL,
+    this.amqpService.publishToDevice(queueName, {
+      type: MSG.READY,
     });
   }
 
@@ -101,48 +107,76 @@ export class ConversationGateway
       throw new WsException('Device id not found');
     }
 
-    if (payload.type === MSG.CONVERSATION) {
-      this.server
-        .to(`room-${conversationId}`)
-        .emit(MSG.CONVERSATION, { result });
+    switch (payload.type) {
+      case MSG.READY:
+        this.server.to(`room-${conversationId}`).emit(MSG.READY, { result });
+        break;
+      case MSG.CONVERSATION:
+        this.server
+          .to(`room-${conversationId}`)
+          .emit(MSG.CONVERSATION, { result });
+        break;
+      case MSG.SAVE_CONTENT:
+        const res = await this.conversationService.addContent(userId, {
+          conversationId,
+          content: result,
+          speakerType: SPEAKER_TYPE.AI,
+        });
 
-      await this.conversationService.addContent(userId, {
-        conversationId,
-        content: result,
-        speakerType: SPEAKER_TYPE.AI,
-      });
-    } else {
-      throw new WsException('Invalid type');
+        console.log('[ws] saved content', { res });
+        break;
+      default:
+        throw new WsException('Invalid type');
+        break;
     }
   };
 
   @SubscribeMessage(MSG.CONVERSATION)
-  async handleOffer(
+  async handleConversation(
     @CurrentUser('id') userId: number,
+    @ConnectedSocket() client: Socket,
     @MessageBody() data: any,
   ) {
-    const { prompt, deviceId, conversationId } = data;
+    const { prompt, deviceId } = data;
+    let conversationId = data.conversationId;
+
+    if (!conversationId) {
+      conversationId = await this.conversationService.createConversation(
+        userId,
+        prompt,
+      );
+      client.join(`room-${conversationId}`);
+    } else {
+      await this.conversationService.getOwnedConversation(
+        userId,
+        conversationId,
+      );
+    }
 
     const queueName = await this.getQueueName(deviceId, userId);
 
-    const result = await this.mqttService.publishToDevice(queueName, {
+    const result = await this.amqpService.publishToDevice(queueName, {
       type: MSG.CONVERSATION,
       data: {
         prompt,
+        conversationId,
       },
     });
 
-    if (result) {
+    if (result && data.conversationId) {
       await this.conversationService.addContent(userId, {
         conversationId,
         content: prompt,
         speakerType: SPEAKER_TYPE.USER,
       });
     }
+
+    return { conversationId, sent: Boolean(result) };
   }
 
   private async getQueueName(deviceId: number, userId: number) {
-    let queueName = await this.redisService.get(`user:${userId}-${deviceId}`);
+    const cacheKey = `conversation:user:${userId}:device:${deviceId}`;
+    let queueName = await this.redisService.get(cacheKey);
 
     if (queueName) {
       return queueName;
@@ -150,8 +184,8 @@ export class ConversationGateway
 
     const device = await this.deviceRepo.findOne({
       where: { id: deviceId, user: { id: userId } },
-      relations: { user: true },
       select: { id: true, machineId: true },
+      relations: { user: true },
     });
 
     if (!device) {
@@ -160,13 +194,14 @@ export class ConversationGateway
 
     queueName = deviceNameUtil.getQueueName(device.machineId);
 
-    await this.redisService.set(`user:${userId}-${deviceId}`, queueName, 3600);
+    await this.redisService.set(cacheKey, queueName, 3600);
 
     return queueName;
   }
 
   private async getIds(machineId: string) {
-    const ids = await this.redisService.get(`machine:${machineId}`);
+    const cacheKey = `conversation:machine:${machineId}`;
+    const ids = await this.redisService.get(cacheKey);
 
     if (ids) {
       const [deviceId, userId] = ids.split('-');
@@ -177,14 +212,17 @@ export class ConversationGateway
     const device = await this.deviceRepo.findOne({
       where: { machineId },
       select: { id: true, machineId: true, user: true },
+      relations: { user: true },
     });
 
     if (!device) {
       throw new WsException('Device not found');
     }
 
+    console.log({ device });
+
     await this.redisService.set(
-      `machine:${machineId}`,
+      cacheKey,
       `${device.id}-${device.user!.id}`,
       120,
     );

@@ -10,6 +10,8 @@ describe('ConversationController', () => {
 
   const mockConversationService = {
     getConversations: jest.fn(),
+    getContents: jest.fn(),
+    deleteConversation: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -42,5 +44,22 @@ describe('ConversationController', () => {
       expected,
     );
     expect(service.getConversations).toHaveBeenCalledWith(7, query);
+  });
+
+  it('delegates content history with ownership context', async () => {
+    const query = { page: 1, limit: 20, conversationId: 3 };
+    mockConversationService.getContents.mockResolvedValue({ list: [], total: 0 });
+
+    await controller.getContents(7, query);
+    expect(service.getContents).toHaveBeenCalledWith(7, query, 3);
+  });
+
+  it('delegates conversation deletion with ownership context', async () => {
+    mockConversationService.deleteConversation.mockResolvedValue(true);
+
+    await expect(
+      controller.deleteConversation(7, { conversationId: 3 }),
+    ).resolves.toBe(true);
+    expect(service.deleteConversation).toHaveBeenCalledWith(7, 3);
   });
 });

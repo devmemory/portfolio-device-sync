@@ -28,7 +28,12 @@ export class WebRTCService extends WsService {
 
   initPeer = () => {
     this.peerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }, this.turnInfo],
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" },
+        { urls: "stun:stun.cloudflare.com:3478" },
+        this.turnInfo,
+      ],
     });
 
     this.peerConnection.addTransceiver("video", { direction: "recvonly" });

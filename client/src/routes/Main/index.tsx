@@ -19,14 +19,14 @@ const Main = () => {
       <section className="grid gap-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
         <div>
           <p className="text-sm font-semibold text-primary-700">
-            MQTT device console
+            AMQP device console
           </p>
           <h1 className="mt-2 text-3xl font-bold text-ink-900 sm:text-4xl">
             Connect, pair, and test local devices from one workspace.
           </h1>
           <p className="mt-4 max-w-2xl text-base text-ink-600">
             A compact client for signing in, pairing hardware through the local
-            agent, and sending MQTT test messages.
+            agent, and sending AMQP test messages.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link to={routeName.device}>

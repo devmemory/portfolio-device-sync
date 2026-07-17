@@ -15,7 +15,7 @@ const NotFound = () => {
       <p className="text-sm font-semibold text-primary-700">404</p>
       <h1 className="text-3xl font-bold text-ink-900">Page not found</h1>
       <p className="text-sm text-ink-600">
-        The page you requested does not exist in this MQTT client.
+        The page you requested does not exist in this AMQP client.
       </p>
       <Button className="mx-auto" onClick={onMoveToHome}>
         Go home

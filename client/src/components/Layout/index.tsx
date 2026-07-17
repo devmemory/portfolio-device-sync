@@ -58,7 +58,7 @@ const Layout = () => {
   return (
     <>
       <Popup />
-      <div className="min-h-full">
+      <div className="min-h-dvh">
         <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/90 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
             <Link
@@ -68,7 +68,7 @@ const Layout = () => {
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600 text-white">
                 MQ
               </span>
-              <span>MQTT Client</span>
+              <span className="hidden sm:inline">Reverse Tunneling</span>
             </Link>
             <nav className="flex items-center gap-1">
               <NavLink to={routeName.main} className={navClass}>
@@ -93,7 +93,7 @@ const Layout = () => {
             </nav>
           </div>
         </header>
-        <main className="mx-auto min-h-[calc(100vh-65px)] max-w-6xl px-4 py-8 sm:px-6">
+        <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
           <Outlet />
         </main>
       </div>

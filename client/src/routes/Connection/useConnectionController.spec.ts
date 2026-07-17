@@ -49,7 +49,7 @@ vi.mock("@tanstack/react-query", () => ({
   useMutation: () => ({ isPending: false, mutate: vi.fn() }),
 }));
 
-vi.mock("src/services/webrtc/webRTC", () => ({
+vi.mock("src/services/socket/webRTC", () => ({
   WebRTCService: MockWebRTCService,
 }));
 

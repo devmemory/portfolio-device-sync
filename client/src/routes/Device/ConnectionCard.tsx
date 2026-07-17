@@ -12,7 +12,7 @@ const ConnectionCard = ({ isPending, onConnect }: Props) => {
       <div>
         <p className="text-sm font-semibold text-primary-700">Device manager</p>
         <h1 className="mt-1 text-2xl font-bold text-ink-900">
-          Pair and control MQTT devices
+          Pair and control AMQP devices
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-ink-600">
           Connect to the local device agent, request a pair token, then send

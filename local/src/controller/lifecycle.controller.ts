@@ -41,7 +41,7 @@ class LifecycleController {
       const account = await deviceController.checkAccount(this.machineId);
 
       if (account) {
-        this.startMqtt(account);
+        this.startAMQP(account);
       } else {
         this.startMdns();
       }
@@ -54,11 +54,11 @@ class LifecycleController {
 
   async dispose() {
     await this.stopMdns();
-    await this.stopMqtt();
+    await this.stopAMQP();
   }
 
-  public startMqtt(account: MqAccountModel): void {
-    console.info("[lifecycle] mqtt start subscription");
+  public startAMQP(account: MqAccountModel): void {
+    console.info("[lifecycle] AMQP start subscription");
     messageController.subscribe({ machineId: this.machineId!, ...account });
   }
 
@@ -104,8 +104,8 @@ class LifecycleController {
     });
   }
 
-  public async stopMqtt() {
-    console.log("[lifecycle] mqtt stop subscription");
+  public async stopAMQP() {
+    console.log("[lifecycle] AMQP stop subscription");
     await messageController.dispose();
   }
 }

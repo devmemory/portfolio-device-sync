@@ -9,12 +9,12 @@ export const MAIN_BTN_TEXT = [
   },
   {
     title: "Device actions",
-    description: "Send MQTT messages and manage registrations.",
+    description: "Send AMQP messages and manage registrations.",
   },
 ] as const;
 
 export const MAIN_FLOW_TEXT = [
-  { title: "Connect", description: "Verify the local MQTT device helper." },
+  { title: "Connect", description: "Verify the local AMQP device helper." },
   { title: "Pair", description: "Set the device info and register it." },
   {
     title: "Send",

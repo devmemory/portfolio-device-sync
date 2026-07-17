@@ -7,12 +7,15 @@ import { refreshToken } from "../api/ApiErrorHandler";
 interface Props {
   deviceId: number;
   url: string;
+  joinData?: Record<string, unknown>;
 }
 
 export class WsService {
   private socket!: Socket;
+  private joinData?: Record<string, unknown>;
 
-  constructor({ deviceId, url }: Props) {
+  constructor({ deviceId, url, joinData }: Props) {
+    this.joinData = joinData;
     const token = authUtil.getToken.accessToken;
 
     this.socket = io(url, {
@@ -28,7 +31,7 @@ export class WsService {
     this.socket.on("connect", () => {
       console.log("[ws] connected");
 
-      this.emit(MSG.JOIN, { deviceId });
+      this.emit(MSG.JOIN, { deviceId, ...this.joinData });
     });
 
     this.socket.on("error", async (error) => {
@@ -59,12 +62,50 @@ export class WsService {
     this.socket.emit(event, data);
   }
 
+  protected emitWithAck<T>(event: string, data: unknown) {
+    return new Promise<T>((resolve, reject) => {
+      this.socket.timeout(10000).emit(
+        event,
+        data,
+        (error: Error | null, response: T) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+
+          resolve(response);
+        },
+      );
+    });
+  }
+
   protected on(event: string, callback: any) {
     this.socket.on(event, callback);
   }
 
+  protected updateJoinData(joinData: Record<string, unknown>) {
+    this.joinData = joinData;
+
+    if (this.socket.connected) {
+      this.emit(MSG.JOIN, joinData);
+    }
+  }
+
+  protected reconnectWithJoinData(joinData: Record<string, unknown>) {
+    this.joinData = joinData;
+
+    if (this.socket.connected) {
+      this.socket.disconnect().connect();
+    }
+  }
+
   private _offListeners() {
-    [WebRTC_CMD.ANSWER, WebRTC_CMD.CANDIDATE, MSG.SIGNAL].forEach((event) => {
+    [
+      WebRTC_CMD.ANSWER,
+      WebRTC_CMD.CANDIDATE,
+      MSG.SIGNAL,
+      MSG.CONVERSATION,
+    ].forEach((event) => {
       this.socket.off(event);
     });
   }

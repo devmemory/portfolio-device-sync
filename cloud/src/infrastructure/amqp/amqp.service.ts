@@ -15,8 +15,8 @@ import { randomBytes } from 'crypto';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
-export class MqttService implements OnModuleInit, OnModuleDestroy {
-  private readonly logger = new Logger(MqttService.name);
+export class AmqpService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(AmqpService.name);
   private connection?: AmqpConnectionManager;
   private channelWrapper?: ChannelWrapper;
   private admin?: { username: string; password: string };
@@ -52,7 +52,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * - publishg message to device
+   * - publish message to device
    */
   async publishToDevice(queueName: string, payload: Record<string, any>) {
     const buffer = Buffer.from(JSON.stringify(payload));
@@ -82,7 +82,10 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
           const { machineId, result } = payload.data;
 
           eventEmitter.emit(machineId, result);
-        } else if (payload.type === MSG.CONVERSATION) {
+        } else if (
+          payload.type === MSG.CONVERSATION ||
+          payload.type === MSG.SAVE_CONTENT
+        ) {
           eventEmitter.emit(SERVICE_NAME.AI, payload);
         } else {
           eventEmitter.emit(SERVICE_NAME.MEDIA, payload);

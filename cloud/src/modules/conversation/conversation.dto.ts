@@ -1,13 +1,28 @@
-import { ResponseDto } from '@/common';
+import { PaginationDto, ResponseDto } from '@/common';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsIn,
+  IsInt,
   IsNumber,
   IsString,
   MaxLength,
+  Min,
   MinLength,
 } from 'class-validator';
+
+export class ConversationIdDto {
+  @ApiProperty({ example: 1 })
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  conversationId!: number;
+}
+
+export class ConversationResDto extends ResponseDto {
+  @ApiProperty({ example: true })
+  declare data: boolean;
+}
 
 export class ConversationListResDto extends ResponseDto {
   @ApiProperty({
@@ -24,6 +39,23 @@ export class ConversationListResDto extends ResponseDto {
     },
   })
   declare data: any;
+}
+
+export class ConversationContentListResDto extends ResponseDto {
+  @ApiProperty({
+    example: {
+      list: [{ id: 1, content: 'Hello', speakerType: 0 }],
+      total: 1,
+    },
+  })
+  declare data: any;
+}
+
+export class ConversationContentListDto extends PaginationDto {
+  @ApiProperty({ example: 1 })
+  @Type(() => Number)
+  @IsNumber()
+  conversationId!: number;
 }
 
 export class AddContentDto {

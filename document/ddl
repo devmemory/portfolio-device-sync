@@ -53,26 +53,26 @@ CREATE TABLE IF NOT EXISTS conversation (
 
 CREATE TABLE IF NOT EXISTS content (
   id SERIAL PRIMARY KEY,
-  list_id INTEGER NOT NULL,
+  conversation_id INTEGER NOT NULL,
   content TEXT,
   speaker_type SMALLINT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  FOREIGN KEY (list_id) REFERENCES conversation (id) ON DELETE CASCADE
+  FOREIGN KEY (conversation_id) REFERENCES conversation (id) ON DELETE CASCADE
 );
 
 -- foreign key index
 CREATE INDEX idx_device_users_id ON device (user_id);
 CREATE INDEX idx_device_error_device_id ON device_error (device_id);
-CREATE INDEX idx_device_info_device_id ON device_info (device_id);
 
 -- searching index
-CREATE INDEX idx_user_email_active ON users (email) WHERE deleted_at IS NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_user_email_active ON users (email) WHERE deleted_at IS NULL;
 CREATE INDEX idx_device_name ON device (name);
 CREATE INDEX idx_device_error_code ON device_error (code);
 CREATE INDEX idx_device_error_pagination 
 ON device_error (device_id, id DESC);
-CREATE INDEX idx_device_user_lookup ON device (users, id) WHERE deleted_at IS NULL
+
+CREATE INDEX idx_device_user_lookup ON device (user_id, id) WHERE deleted_at IS NULL;
 CREATE INDEX idx_conversation_lookup 
 ON conversation (user_id, updated_at DESC) WHERE deleted_at IS NULL;
 CREATE INDEX idx_content_pagination 
-ON content (list_id, id DESC);
+ON content (conversation_id, id DESC);

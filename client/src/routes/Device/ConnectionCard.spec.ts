@@ -9,7 +9,7 @@ describe("ConnectionCard", () => {
       React.createElement(ConnectionCard, { isPending: false, onConnect: () => undefined }),
     );
 
-    expect(html).toContain("Pair and control MQTT devices");
+    expect(html).toContain("Pair and control AMQP devices");
     expect(html).toContain("Connect");
     expect(html).not.toContain("<button disabled");
   });

@@ -6,9 +6,13 @@ export const MSG = {
   OFFER: 'OFFER', // WebRTC offer(client)
   ANSWER: 'ANSWER', // WebRTC answer(local)
   CANDIDATE: 'CANDIDATE', // WebRTC candidate
-  CLOSE: 'CLOSE', // close mqtt
+  CLOSE: 'CLOSE', // close AMQP
+
   CHECK: 'CHECK', // check service
-  CONVERSATION: 'CONVERSATION'
+
+  READY: 'READY', // ai service ready
+  CONVERSATION: 'CONVERSATION', // stream text
+  SAVE_CONTENT: 'SAVE_CONTENT', // full text of conversation
 } as const;
 
 export const SERVICE_NAME = {

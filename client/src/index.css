@@ -89,3 +89,123 @@
   --color-ink-600: #526579;
   --color-surface: #ffffff;
 }
+
+@layer components {
+  .markdown-content {
+    overflow-wrap: anywhere;
+  }
+
+  .markdown-content > :first-child {
+    margin-top: 0;
+  }
+
+  .markdown-content > :last-child {
+    margin-bottom: 0;
+  }
+
+  .markdown-content p,
+  .markdown-content ul,
+  .markdown-content ol,
+  .markdown-content pre,
+  .markdown-content blockquote,
+  .markdown-content table {
+    margin: 0.75rem 0;
+  }
+
+  .markdown-content h1,
+  .markdown-content h2,
+  .markdown-content h3,
+  .markdown-content h4 {
+    margin: 1rem 0 0.5rem;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  .markdown-content h1 {
+    font-size: 1.35rem;
+  }
+
+  .markdown-content h2 {
+    font-size: 1.2rem;
+  }
+
+  .markdown-content h3,
+  .markdown-content h4 {
+    font-size: 1.05rem;
+  }
+
+  .markdown-content ul,
+  .markdown-content ol {
+    padding-left: 1.5rem;
+  }
+
+  .markdown-content ul {
+    list-style: disc;
+  }
+
+  .markdown-content ol {
+    list-style: decimal;
+  }
+
+  .markdown-content li + li {
+    margin-top: 0.25rem;
+  }
+
+  .markdown-content a {
+    color: var(--color-primary-700);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .markdown-content blockquote {
+    border-left: 3px solid var(--color-primary-500);
+    padding-left: 0.875rem;
+    color: var(--color-ink-600);
+  }
+
+  .markdown-content code {
+    border-radius: 0.3rem;
+    background: rgba(15, 23, 42, 0.08);
+    padding: 0.12rem 0.35rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.875em;
+  }
+
+  .markdown-content pre {
+    max-width: 100%;
+    overflow-x: auto;
+    border-radius: 0.5rem;
+    background: #172033;
+    padding: 0.875rem 1rem;
+    color: #f8fafc;
+  }
+
+  .markdown-content pre code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+  }
+
+  .markdown-content table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .markdown-content th,
+  .markdown-content td {
+    border: 1px solid #cbd5e1;
+    padding: 0.35rem 0.6rem;
+    text-align: left;
+  }
+
+  .markdown-content th {
+    font-weight: 600;
+  }
+
+  .markdown-content hr {
+    margin: 1rem 0;
+    border: 0;
+    border-top: 1px solid #cbd5e1;
+  }
+}

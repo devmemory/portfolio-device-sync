@@ -15,7 +15,7 @@ class AIController {
       await this.instance.post<ReadableStream<Uint8Array> | null>(
         "/api/generate",
         {
-          model: "llama3",
+          model: "gemma2:2b",
           prompt: prompt,
           stream: true,
         },
