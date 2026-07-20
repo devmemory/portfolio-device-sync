@@ -25,8 +25,16 @@ const Conversation = () => {
     onConversationCreated,
   } = useConversationController();
 
-  const { contentList, message, onChangeMessage, onSendMessage, isSending } =
-    useContentController({ selectedId, onConversationCreated });
+  const {
+    contentList,
+    message,
+    onChangeMessage,
+    onSendMessage,
+    isSending,
+    canLoadMore,
+    isLoadingMore,
+    onLoadMore,
+  } = useContentController({ selectedId, onConversationCreated });
 
   const { isSidebarOpen, setIsSidebarOpen } = useSideBarController();
 
@@ -91,6 +99,9 @@ const Conversation = () => {
           selectedId={selectedId}
           contentState={contentState}
           contentList={contentList}
+          canLoadMore={canLoadMore}
+          isLoadingMore={isLoadingMore}
+          onLoadMore={onLoadMore}
         />
 
         <ChattingBar

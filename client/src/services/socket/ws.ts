@@ -83,14 +83,6 @@ export class WsService {
     this.socket.on(event, callback);
   }
 
-  protected updateJoinData(joinData: Record<string, unknown>) {
-    this.joinData = joinData;
-
-    if (this.socket.connected) {
-      this.emit(MSG.JOIN, joinData);
-    }
-  }
-
   protected reconnectWithJoinData(joinData: Record<string, unknown>) {
     this.joinData = joinData;
 

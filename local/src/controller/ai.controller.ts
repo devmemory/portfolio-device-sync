@@ -16,35 +16,102 @@ class AIController {
         "/api/generate",
         {
           model: "gemma2:2b",
-          prompt: prompt,
+          prompt,
           stream: true,
         },
-        { responseType: "stream" },
+        {
+          responseType: "stream",
+        },
       );
 
-    if (data) {
+    if (!data) {
+      return;
+    }
+
+    const decoder = new TextDecoder();
+
+    let networkBuffer = "";
+    let outputBuffer = "";
+    let flushTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const flushIntervalMs = 80;
+    const maxBufferLength = 400;
+
+    const flush = () => {
+      if (flushTimer) {
+        clearTimeout(flushTimer);
+        flushTimer = null;
+      }
+
+      if (!outputBuffer) {
+        return;
+      }
+
+      const value = outputBuffer;
+      outputBuffer = "";
+
+      callback(value);
+    };
+
+    const scheduleFlush = () => {
+      if (outputBuffer.length >= maxBufferLength) {
+        flush();
+        return;
+      }
+
+      if (!flushTimer) {
+        flushTimer = setTimeout(flush, flushIntervalMs);
+      }
+    };
+
+    const processLine = (line: string) => {
+      const trimmedLine = line.trim();
+
+      if (!trimmedLine) {
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(trimmedLine);
+
+        if (parsed.error) {
+          throw new Error(parsed.error);
+        }
+
+        if (parsed.response) {
+          outputBuffer += parsed.response;
+          scheduleFlush();
+        }
+
+        if (parsed.done) {
+          flush();
+        }
+      } catch (error) {
+        console.warn("[Ollama] Failed to parse response:", error);
+      }
+    };
+
+    try {
       for await (const chunk of data) {
-        const lines = Buffer.from(chunk).toString("utf-8").trim().split("\n");
-        let resultText = "";
+        networkBuffer += decoder.decode(chunk, { stream: true });
+
+        const lines = networkBuffer.split("\n");
+
+        // Preserve the final partial JSON line.
+        networkBuffer = lines.pop() ?? "";
 
         for (const line of lines) {
-          if (line) {
-            try {
-              const parsed = JSON.parse(line);
-
-              if (parsed.response) {
-                resultText += parsed.response;
-              }
-            } catch (err) {
-              console.warn("[Ollama] Skipped a partial network frame.");
-            }
-          }
-        }
-
-        if (resultText !== "") {
-          callback(resultText);
+          processLine(line);
         }
       }
+
+      networkBuffer += decoder.decode();
+
+      if (networkBuffer.trim()) {
+        processLine(networkBuffer);
+      }
+    } finally {
+      flush();
     }
   }
 }

@@ -42,10 +42,6 @@ export class AIService extends WsService {
     }
 
     this.conversationId = response.conversationId;
-    this.updateJoinData({
-      deviceId: this.deviceId,
-      conversationId: response.conversationId,
-    });
 
     return response;
   };

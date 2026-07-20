@@ -9,11 +9,22 @@ interface Props {
   selectedId: number | null;
   contentState: "select" | "content" | "newchat";
   contentList: ConversationContent[];
+  canLoadMore: boolean;
+  isLoadingMore: boolean;
+  onLoadMore: () => void;
 }
 
-const ChattingList = ({ selectedId, contentState, contentList }: Props) => {
+const ChattingList = ({
+  selectedId,
+  contentState,
+  contentList,
+  canLoadMore,
+  isLoadingMore,
+  onLoadMore,
+}: Props) => {
   const contentViewportRef = useRef<HTMLDivElement>(null);
   const shouldFollowLatestContentRef = useRef(true);
+  const heightBeforeLoadRef = useRef<number | null>(null);
 
   const previousSelectedIdRef = useRef(selectedId);
 
@@ -24,6 +35,14 @@ const ChattingList = ({ selectedId, contentState, contentList }: Props) => {
 
     const conversationChanged = previousSelectedIdRef.current !== selectedId;
     previousSelectedIdRef.current = selectedId;
+
+    if (conversationChanged) {
+      heightBeforeLoadRef.current = null;
+    } else if (heightBeforeLoadRef.current !== null) {
+      viewport.scrollTop += viewport.scrollHeight - heightBeforeLoadRef.current;
+      heightBeforeLoadRef.current = null;
+      return;
+    }
 
     if (conversationChanged || shouldFollowLatestContentRef.current) {
       viewport.scrollTop = viewport.scrollHeight;
@@ -40,6 +59,11 @@ const ChattingList = ({ selectedId, contentState, contentList }: Props) => {
       viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight;
 
     shouldFollowLatestContentRef.current = distanceFromBottom <= 24;
+
+    if (viewport.scrollTop <= 0 && canLoadMore && !isLoadingMore) {
+      heightBeforeLoadRef.current = viewport.scrollHeight;
+      onLoadMore();
+    }
   };
 
   return (
@@ -48,7 +72,7 @@ const ChattingList = ({ selectedId, contentState, contentList }: Props) => {
       className="min-h-0 flex-1 overscroll-y-contain overflow-y-auto"
       onScroll={onContentScroll}
     >
-      <div className="mx-auto flex min-h-full max-w-3xl flex-col justify-end px-3 py-5 sm:px-8 sm:py-8">
+      <div className="mx-auto flex min-h-full w-full min-w-0 max-w-3xl flex-col justify-end px-3 py-5 sm:px-8 sm:py-8">
         <Switch
           when={contentState}
           select={

@@ -74,10 +74,10 @@ export class ConversationService {
       relations: { conversation: true },
       skip,
       take,
-      order: { createdAt: 'ASC' },
+      order: { id: 'DESC' },
     });
 
-    return { list, total };
+    return { list: list.reverse(), total };
   }
 
   async addContent(userId: number, dto: AddContentDto) {
