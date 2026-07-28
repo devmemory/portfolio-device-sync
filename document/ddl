@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS users
 (
   id SERIAL PRIMARY KEY,
   name VARCHAR(30) NOT NULL,
-  email VARCHAR(150) NOT NULL UNIQUE,
+  email VARCHAR(150) NOT NULL,
   pw VARCHAR(200) NOT NULL,
   refresh_token VARCHAR(200),
   token_version SMALLINT NOT NULL DEFAULT 1,
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS device
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   deleted_at TIMESTAMPTZ DEFAULT NULL,
-  FOREIGN KEY (user_id) REFERENCES users (id)
+  CONSTRAINT fk_device_users FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
 CREATE TABLE IF NOT EXISTS device_error
@@ -31,14 +31,14 @@ CREATE TABLE IF NOT EXISTS device_error
   code SMALLINT NOT NULL,
   message VARCHAR(200) NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  FOREIGN KEY (device_id) REFERENCES device (id) ON DELETE CASCADE
+  CONSTRAINT fk_device_error_device FOREIGN KEY (device_id) REFERENCES device (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS device_info (
   device_id INTEGER NOT NULL PRIMARY KEY,
   user_id VARCHAR(50) NOT NULL,
   pw VARCHAR(200) NOT NULL,
-  FOREIGN KEY (device_id) REFERENCES device (id) ON DELETE CASCADE
+  CONSTRAINT fk_device_info_device FOREIGN KEY (device_id) REFERENCES device (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS conversation (
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS conversation (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   deleted_at TIMESTAMPTZ DEFAULT NULL,
-  FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+  CONSTRAINT fk_conversation_users FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS content (
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS content (
   content TEXT,
   speaker_type SMALLINT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  FOREIGN KEY (conversation_id) REFERENCES conversation (id) ON DELETE CASCADE
+  CONSTRAINT fk_content_conversation FOREIGN KEY (conversation_id) REFERENCES conversation (id) ON DELETE CASCADE
 );
 
 -- foreign key index
