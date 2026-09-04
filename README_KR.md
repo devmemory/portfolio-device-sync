@@ -7,9 +7,6 @@
 > **리버스 터널링**과 **p2p** 통신을 활용하여 비용제약, 환경제약을 극복하기 위해 만들어본 프로젝트 입니다.
 
 블로그 포스트: https://devmemory.tistory.com/category/Side%20project  
-라이브 데모: https://www.devmemory.xyz/  
-- Hetzner cloud(독일 지역)에 배포되어 있어 한국에서 테스트할 때 지연이 있습니다.
-- 실기기 테스트를 원하시면 devmemorydh@gmail.com 로 로컬서버 파일 요청 해주시면 됩니다.(ffmpeg필수)
 
 ---
 

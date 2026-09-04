@@ -7,9 +7,6 @@
 > Designing a distributed edge platform for secure remote access to edge devices under real-world network constraints.
 
 Blog: https://medium.com/@devmemorydh  
-Live demo: https://www.devmemory.xyz/  
-- This server is deployed in Hetzner cloud(Germany). RTT is longer if you test in other continent
-- If you want to test with your own pc, you can ask me to get local server file
 
 ---
 
